@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="189.68657mm"
+   height="50.558502mm"
+   viewBox="0 0 189.68657 50.558502"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a84865, 2022-12-01)"
+   sodipodi:docname="drawing.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     showguides="false"
+     inkscape:zoom="0.52906829"
+     inkscape:cx="460.24305"
+     inkscape:cy="342.11085"
+     inkscape:window-width="1235"
+     inkscape:window-height="864"
+     inkscape:window-x="41"
+     inkscape:window-y="44"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="406.49643"
+       y="341.37524"
+       width="24.237934"
+       height="25.406027"
+       id="rect474" />
+    <rect
+       x="344.97772"
+       y="343.5867"
+       width="66.769882"
+       height="72.334038"
+       id="rect468" />
+    <rect
+       x="370.57956"
+       y="1198.2617"
+       width="194.26859"
+       height="491.38525"
+       id="rect330" />
+    <rect
+       x="262.83398"
+       y="1041.5408"
+       width="233.44881"
+       height="515.87286"
+       id="rect324" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-4.8990969,-162.20084)">
+    <circle
+       style="fill:#000000;stroke-width:0.0469565"
+       id="path111"
+       cx="207.26511"
+       cy="-189.22537"
+       r="5.3602967"
+       transform="rotate(90)" />
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text322"
+       style="white-space:pre;shape-inside:url(#rect324);fill:#000000" />
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text328"
+       style="white-space:pre;shape-inside:url(#rect330);fill:#000000" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.175px;white-space:pre;inline-size:34.9065;fill:#000000;stroke-width:0.264583"
+       x="72.565033"
+       y="270.82306"
+       id="text336"
+       transform="matrix(16.149884,0,0,14.468125,-1167.2087,-3717.4752)"><tspan
+         x="72.565033"
+         y="270.82306"
+         id="tspan198"><tspan
+           style="font-family:Futura;-inkscape-font-specification:Futura"
+           id="tspan196">ArtHrtg</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Futura;-inkscape-font-specification:Futura;white-space:pre;inline-size:14.3106;fill:#000000;stroke-width:0.264583"
+       x="92.379494"
+       y="90.171227"
+       id="text464"
+       transform="matrix(0,-2.9135186,2.7294059,0,-53.543412,466.85964)"><tspan
+         x="92.379494"
+         y="90.171227"
+         id="tspan200">SEARCH</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text466"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Futura;-inkscape-font-specification:Futura;white-space:pre;shape-inside:url(#rect468);fill:#000000" />
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text472"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Futura;-inkscape-font-specification:Futura;white-space:pre;shape-inside:url(#rect474);fill:#000000" />
+  </g>
+</svg>
