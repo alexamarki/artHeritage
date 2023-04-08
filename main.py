@@ -39,6 +39,9 @@ from flask import Flask, render_template
 #   and baz() holds the property of tag 2                                    # 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
+##### note to self - should probably add a thing that saves the last searched item
+##### when one navigates back to search using built-in browser nav (arrows/swipes)
+
 app = Flask(__name__)
 
 
@@ -120,6 +123,25 @@ def profile_options():
 
 
 # ---- </user>
+
+# ----<actions> User's actions on their own posts
+@app.route('/newpost')
+def create_post():
+    pass  # need some way to pass artwork info to here
+
+
+### not sure if the following ones should be pages, or if they can just be functions
+### that restart this page. idk basically? prolly pages
+
+# deletepost
+
+# remove bookmark
+
+# add bookmark - while the ones before should at the verey least refresh the current
+#               page, i'm not really that sure with this one in particular - you will NOT be on the
+#               bookmark page while adding a bookmark, so there's not much need in reloading, is there?
+
+# ----</actions>
 
 # ---- <sub> User's subscriptions / friends (aka mutuals) and their posts
 
