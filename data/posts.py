@@ -9,9 +9,8 @@ class Posts(SqlAlchemyBase):
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    content_src = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    content_img = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    content_title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    content_id = sqlalchemy.Column(sqlalchemy.Integer,
+                             sqlalchemy.ForeignKey("content.id"), nullable=True)
     is_public = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
     u_title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     u_content = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -20,3 +19,4 @@ class Posts(SqlAlchemyBase):
     post_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
     users = orm.relationship('Users')
+    content = orm.relationship('Content')
