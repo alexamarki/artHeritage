@@ -1,37 +1,43 @@
 from flask import Flask, render_template
 
-# # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Comment clarification!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! # #
-# This is ArtHeritage's main file, which includes all routes and the majority of the logic required                    #
-#   for our Flask web app.                                                                                             #
-# This file in particular is commented in the following manner:                                                        #
-# --Use case 1--                                                                                                       #
-# | [code] # comment - a comment regarding a particular portion of the code, if written on the same line as the code   #
-# | # > comment - the aforementioned use case, when written on a blank line                                            #
-# --Use case 2--                                                                                                       #
-# | # '--' * n <tag> comment                                                                                           #
-# In use case #2, <tag> is either an opening or a closing tag. These tags are used in pairs (<tag>code</tag>).         #
-# * Tags in our comments surround code related to a particular portion of the app, and are supposed to                 #
-#       improve code readability, as well as make troubleshooting easier.                                              #
-# * Next to the opening tag is a comment, explaining the purpose of the code it envelops.                              #
-# * '--' may also be used n times (n >= 0) in the beginning of a comment to clarify the level of indentation,          #
-#       akin to python indentation rules. As such, the following pseudocode...                                         #
-# 01| # <tag1> Tag 1 explanation                                                                                       #
-# 02| # -- <tag1-1> Tag 1.1 explanation                                                                                #
-# 03| def foo():                                                                                                       #
-# 04|   pass                                                                                                           #
-# 05| # -- </tag1-1>                                                                                                   #
-# 06| # -- <tag1-2> Tag 1.2 explanation                                                                                #
-# 07| def bar():                                                                                                       #
-# 08|   pass                                                                                                           #
-# 09| # -- </tag1-2>                                                                                                   #
-# 10| # </tag1>                                                                                                        #
-# 11| # <tag2> Tag 2 explanation                                                                                       #
-# 12| def baz():                                                                                                       #
-# 13|   pass                                                                                                           #
-# 14| # </tag2>                                                                                                        #
-# ...would tell us that foo() holds the properties of tags 1 and 1.1, bar() holds the properties of tags 1 and 1.2,    #
-#   and baz() holds the property of tag 2                                                                              #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# ! ! ! ! ! ! ! ! ! ! ! ! ! Comment clarification ! ! ! ! ! ! ! ! ! ! ! ! ! #
+# This is ArtHeritage's main file, which includes all routes and the         #
+#   majority of the logic required for our Flask web app.                    #
+# This file in particular is commented in the following manner:              #
+# --Use case 1--                                                             #
+# | [code] # comment - a comment regarding a particular portion of the code, #
+#                          when it's written on the same line as the code.   #
+# | # > comment - the aforementioned use case, when written on a blank line. #
+# --Use case 2--                                                             #
+# | # '--' * n <tag> comment                                                 #
+# In use case #2, <tag> is either an opening or a closing tag.               #
+#   These tags are alwaus used in pairs (<tag>code</tag>).                   #
+# * Tags in our comments surround code related to a particular portion of    #
+#       the app, and are supposed to improve code readability, as well as    #
+#       ease troubleshooting.                                                #
+# * Next to the opening tag is a comment, explaining the purpose of the code #
+#       it envelops.                                                         #
+# * '--' may also be used n times (n >= 0) in the beginning of a comment to  #
+#       clarify the level of indentation.                                    #
+# As such, the following pseudocode...                                       #
+# 01| # <tag1> Tag 1 explanation                                             # 
+# 02| # -- <tag1-1> Tag 1.1 explanation                                      # 
+# 03| def foo():                                                             # 
+# 04|   pass                                                                 # 
+# 05| # -- </tag1-1>                                                         # 
+# 06| # -- <tag1-2> Tag 1.2 explanation                                      # 
+# 07| def bar():                                                             # 
+# 08|   pass                                                                 # 
+# 09| # -- </tag1-2>                                                         # 
+# 10| # </tag1>                                                              # 
+# 11| # <tag2> Tag 2 explanation                                             # 
+# 12| def baz():                                                             # 
+# 13|   pass                                                                 # 
+# 14| # </tag2>                                                              # 
+# ...would tell us that foo() holds the properties of tags 1 and 1.1,        #
+#   bar() holds the properties of tags 1 and 1.2,                            #
+#   and baz() holds the property of tag 2                                    # 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 app = Flask(__name__)
 
