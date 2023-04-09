@@ -47,10 +47,15 @@ app = Flask(__name__)
 
 # <SE> ArtHeritage as a search engine + base website things
 
-# -- <
+# -- <main>
 @app.route('/')
 @app.route('/home')
 def home():
+    pass
+
+
+@app.route('/info')
+def info():
     pass
 
 
@@ -58,6 +63,31 @@ def home():
 def options():
     pass
 
+
+# -- </main>
+
+# -- <search>
+
+#                   from flask import request
+#       http://10.1.1.1:5000/login?username=alexa&password=pw1
+#                   @app.route(...)
+#                   def login():
+#                       username = request.args.get('username')
+#                       password = request.args.get('password')
+
+@app.route('/item')
+@app.route('/search')
+@app.route('/search/<query>')
+def search(query=''):
+    pass
+
+
+@app.route('/item/<source>')
+def item(source):
+    pass
+
+
+# -- </search>
 
 # </SE>
 
