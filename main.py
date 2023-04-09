@@ -44,6 +44,9 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
+# <handler> Login, error handling via Flask
+pass
+# </handler>
 
 # <SE> ArtHeritage as a search engine + base website things
 
