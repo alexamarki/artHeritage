@@ -11,7 +11,7 @@ from flask import Flask, render_template
 # --Use case 2--                                                             #
 # | # '--' * n <tag> comment                                                 #
 # In use case #2, <tag> is either an opening or a closing tag.               #
-#   These tags are alwaus used in pairs (<tag>code</tag>).                   #
+#   These tags are always used in pairs (<tag>code</tag>).                   #
 # * Tags in our comments surround code related to a particular portion of    #
 #       the app, and are supposed to improve code readability, as well as    #
 #       ease troubleshooting.                                                #
@@ -46,6 +46,8 @@ app = Flask(__name__)
 
 # <handler> Login, error handling via Flask
 pass
+
+
 # </handler>
 
 # <SE> ArtHeritage as a search engine + base website things
@@ -170,8 +172,8 @@ def create_post():
 
 # remove bookmark
 
-# add bookmark - while the ones before should at the verey least refresh the current
-#               page, i'm not really that sure with this one in particular - you will NOT be on the
+# add bookmark - while the ones before should at the very least refresh the current
+#               page, I'm not really that sure with this one in particular - you will NOT be on the
 #               bookmark page while adding a bookmark, so there's not much need in reloading, is there?
 
 # ----</actions>
