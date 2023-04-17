@@ -1,5 +1,6 @@
 from requests import get
 import json
+
 url = 'http://sparql.europeana.eu/'
 query = """PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX edm: <http://www.europeana.eu/schemas/edm/>

@@ -1,4 +1,11 @@
 from flask import Flask, render_template
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
+import flask_login
+
+# login_manager = flask_login.LoginManager()
+
 
 # ! ! ! ! ! ! ! ! ! ! ! ! ! Comment clarification ! ! ! ! ! ! ! ! ! ! ! ! ! #
 # This is ArtHeritage's main file, which includes all routes and the         #
@@ -42,7 +49,11 @@ from flask import Flask, render_template
 ##### note to self - should probably add a thing that saves the last searched item
 ##### when one navigates back to search using built-in browser nav (arrows/swipes)
 
+#####save a login using youtube-esque session ids
+############### ADD PROTECTION AGAINST SQL INJECTIONS PLSSSSSSSS
+
 app = Flask(__name__)
+# login_manager.init_app(app)
 
 # <handler> Login, error handling via Flask
 pass
@@ -53,20 +64,34 @@ pass
 # <SE> ArtHeritage as a search engine + base website things
 
 # -- <main>
+class SearchForm(FlaskForm):
+    plain_query = StringField('Plaintext Query', validators=[DataRequired()])
+    search_btn = SubmitField('Search')
+
+
 @app.route('/')
 @app.route('/home')
 def home():
-    pass
+    se_form = SearchForm()
+    # add api request
+    # add check for auth to fetch name + avatar
+    # return template with vars (type, name, avatar)
 
 
 @app.route('/info')
 def info():
     pass
+    # add check for auth to fetch name + avatar
+    # return the template with info + vars
 
 
 @app.route('/options')
 def options():
     pass
+    # add form
+    # fetch cookie with configs (if none, create a blank one with the default values)
+    # check for login - if logged in, use the user's personal config /only if it's differtent from others'/ instead of the browser's cached data
+    # return a page with the current options selected
 
 
 # -- </main>
@@ -78,17 +103,24 @@ def options():
 #                   @app.route(...)
 #                   def login():
 #                       username = request.args.get('username')
-#                       password = request.args.get('password')
+#                       password = request.args.get('password')    \\\\\\\//////// NEEDED FOR SEARCH PARAMETERS
 
 @app.route('/item')
 @app.route('/search')
 @app.route('/search/<query>')
 def search(query=''):
+    # request the api to make a search
+    # if no configurations are requested (base search) - use the main template, which filters out non-artworks and other junk - need to work on that later and applies a basic text search
+    # if configs are provided, they are added to the search
     pass
 
 
 @app.route('/item/<source>')
 def item(source):
+    # check if provided source is a link. if not, redirect to /item or /search
+    # use the source link to get data about the aforementioned item from the api
+    # return the page witrh the picture, name, author, time period, current location
+    # maybe a few other artworks by this person
     pass
 
 
@@ -103,11 +135,13 @@ def item(source):
 # ---- <all> Non-user specific content
 @app.route('/feed/<page>')
 def feed(page):
+    # FETCH ALL POSTS, DESC, paged
     pass
 
 
 @app.route('/top')  # top users and top (by posts + bookmarks) artworks
 def top():
+    # last
     pass
 
 
@@ -116,16 +150,19 @@ def top():
 # ---- <users> User-specific content
 @app.route('/user/<name>')
 def user(name):
+    # me but for any user if they have profile publcity ON, with no check if a person is registered and no access to edit - can use the same template with different data
     pass
 
 
 @app.route('/user/<name>/posts/<page>')
 def user_posts(name, page):
+    # posts but for any user if they have profile publcity ON, with no check if a person is registered and no access to edit - can use the same template with different data
     pass
 
 
 @app.route('/user/<name>/bookmarks/<page>')
-def user_posts(name, page):
+def user_books(name, page):
+    # bookmarks but for any user if they have profile publcity ON, with no check if a person is registered and no access to edit - can use the same template with different data
     pass
 
 
@@ -139,21 +176,40 @@ def user_posts(name, page):
 
 @app.route('/me')
 def me():
+    # check if logged in - if not, send to /register with info to redirect back to /me after registration
+    # get username of the logged in user
+    # do a database search for the aforementioned user - fetch their name, avatar, post count, bookmark count
+    # return a page with all of this
     pass
 
 
 @app.route('/posts')
 def my_posts():
+    # check if logged in - if not, send to /register with info to redirect back to /posts after registration
+    # get username of the logged in user
+    # do a database search for all posts by this users, sort by date, descending -- later split into pages.
+    # present posts in a scroll environment with one post taking up the whole span of the page
+    # return page with posts + ability to delete posts on a post-by-post basis
     pass
 
 
 @app.route('/bookmarks')
 def my_posts():
+    # check if logged in - if not, send to /register with info to redirect back to /bookmarks after registration
+    # get username of the logged in user
+    # do a database search for all bookmarks by this users, sort by date, descending -- later split into pages.
+    # present bookmarks in a scroll env with a few bookmark squares in each row, depending on viewbox size
+    # return page with bookmarks + ability to delete any of them
     pass
 
 
 @app.route('/me/options')
 def profile_options():
+    # check if logged in - if not, send to /register with info to redirect back to /me/options after registration
+    # check the db for if there were any changes to the options template
+    # if there were - fetch their config file
+    # present all the options in their current state
+    # return the page with a form and a var of all the options and their values in an array to be passed into the template
     pass
 
 
@@ -182,21 +238,35 @@ def create_post():
 
 @app.route('/subscriptions')
 def subscriptions():
+    # check if logged in - if not, send to /register with info to redirect back to this after registration
+    # get username of the logged in user
+    # check the list of subscriptions of this user
     pass
 
 
 @app.route('/subfeed/<page>')
 def myfeed_sub(page):
+    # check if logged in - if not, send to /register with info to redirect back to this after registration
+    # get username of the logged in user
+    # check the list of subscriptions of this user
+    # fetch posts by these people. sort by time (descending) + divide into pages later
     pass
 
 
 @app.route('/friends')
 def friends():
+    # check if logged in - if not, send to /register with info to redirect back to this after registration
+    # get username of the logged in user
+    # check the list of subscriptions of this user, check which users have the current account in their subs too
     pass
 
 
 @app.route('/friendfeed/<page>')
 def myfeed_friend(page):
+    # check if logged in - if not, send to /register with info to redirect back to this after registration
+    # get username of the logged in user
+    # check the list of subscriptions of this user, check which users have the current account in their subs too
+    # fetch posts by these people. sort by time (descending) + divide into pages later
     pass
 
 
