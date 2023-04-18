@@ -25,3 +25,12 @@ with open('out.json', 'w') as outfile:
     json.dump(data, outfile)
 
 # asynchronous programming???
+
+def basic_request(text_query):
+    pass
+
+def configurated_request(text_query, params):
+    pass
+
+def info_get(link_query):
+    pass

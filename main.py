@@ -53,6 +53,7 @@ import flask_login
 ############### ADD PROTECTION AGAINST SQL INJECTIONS PLSSSSSSSS
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 # login_manager.init_app(app)
 
 # <handler> Login, error handling via Flask
@@ -72,10 +73,11 @@ class SearchForm(FlaskForm):
 @app.route('/')
 @app.route('/home')
 def home():
-    se_form = SearchForm()
+    # se_form = SearchForm()
     # add api request
     # add check for auth to fetch name + avatar
     # return template with vars (type, name, avatar)
+    return render_template('main.html')
 
 
 @app.route('/info')
@@ -168,6 +170,24 @@ def user_books(name, page):
 
 # ---- </users>
 
+# ---- <auth> Logging in/registering
+@app.route('/logreg')
+def logreg():
+    return render_template('logReg_prompt.html')
+
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+
+@app.route('/login')
+def login():
+    pass
+
+
+# ---- </auth>
+
 # -- </nolog>
 
 # -- <login> Login required
@@ -194,7 +214,7 @@ def my_posts():
 
 
 @app.route('/bookmarks')
-def my_posts():
+def my_books():
     # check if logged in - if not, send to /register with info to redirect back to /bookmarks after registration
     # get username of the logged in user
     # do a database search for all bookmarks by this users, sort by date, descending -- later split into pages.
