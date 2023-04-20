@@ -1,11 +1,13 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, EmailField, PasswordField, BooleanField
 from wtforms.validators import DataRequired
-import flask_login
-
-# login_manager = flask_login.LoginManager()
-
+from flask_login import LoginManager, login_user
+from api_request import basic_request, configurated_request, info_get
+import data.db_session as db_session
+from data.users import Users
+from forms.user import RegisterForm
+from forms.login import LoginForm
 
 # ! ! ! ! ! ! ! ! ! ! ! ! ! Comment clarification ! ! ! ! ! ! ! ! ! ! ! ! ! #
 # This is ArtHeritage's main file, which includes all routes and the         #
@@ -54,30 +56,36 @@ import flask_login
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-# login_manager.init_app(app)
+db_session.global_init("db/user_info.db")
 
 # <handler> Login, error handling via Flask
-pass
+login_manager = LoginManager()
+login_manager.init_app(app)
 
+
+@login_manager.user_loader
+def load_user(user_id):
+    db_sess = db_session.create_session()
+    return db_sess.query(Users).get(user_id)
 
 # </handler>
 
 # <SE> ArtHeritage as a search engine + base website things
-
 # -- <main>
 class SearchForm(FlaskForm):
-    plain_query = StringField('Plaintext Query', validators=[DataRequired()])
+    plain_query = StringField('text', validators=[DataRequired()])
     search_btn = SubmitField('Search')
 
 
-@app.route('/')
-@app.route('/home')
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET', 'POST'])
 def home():
-    # se_form = SearchForm()
-    # add api request
+    se_form = SearchForm()
+    if se_form.plain_query.data:
+        return redirect(f'/search/{se_form.plain_query.data}')
     # add check for auth to fetch name + avatar
     # return template with vars (type, name, avatar)
-    return render_template('main.html')
+    return render_template('main.html', form=se_form)
 
 
 @app.route('/info')
@@ -99,22 +107,20 @@ def options():
 # -- </main>
 
 # -- <search>
-
 #                   from flask import request
 #       http://10.1.1.1:5000/login?username=alexa&password=pw1
 #                   @app.route(...)
 #                   def login():
 #                       username = request.args.get('username')
 #                       password = request.args.get('password')    \\\\\\\//////// NEEDED FOR SEARCH PARAMETERS
-
 @app.route('/item')
 @app.route('/search')
 @app.route('/search/<query>')
 def search(query=''):
+    return render_template('search.html', file=basic_request(query), query=query)
     # request the api to make a search
     # if no configurations are requested (base search) - use the main template, which filters out non-artworks and other junk - need to work on that later and applies a basic text search
     # if configs are provided, they are added to the search
-    pass
 
 
 @app.route('/item/<source>')
@@ -127,13 +133,10 @@ def item(source):
 
 
 # -- </search>
-
 # </SE>
 
 # <social> ArtHeritage as a social network \/
-
 # -- <nolog> No login required
-
 # ---- <all> Non-user specific content
 @app.route('/feed/<page>')
 def feed(page):
@@ -176,24 +179,52 @@ def logreg():
     return render_template('logReg_prompt.html')
 
 
-@app.route('/register')
-def register():
-    return render_template('register.html')
+@app.route('/register', methods=['GET', 'POST'])
+def reqister():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        if form.password.data != form.password_repeat.data:
+            return render_template('register.html', title='Регистрация',
+                                   form=form,
+                                   message="Пароли не совпадают")
+        db_sess = db_session.create_session()
+        if db_sess.query(Users).filter(Users.login == form.login.data).first():
+            return render_template('register.html', title='Регистрация',
+                                   form=form,
+                                   message="Такой пользователь уже есть")
+        user = Users(
+            name=form.name.data,
+            username=form.username.data,
+            login=form.login.data,
+            about=form.about.data
+        )
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        db_sess.commit()
+        return redirect('/login')
+    return render_template('register.html', title='Регистрация', form=form)
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    pass
+    form = LoginForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(Users).filter(Users.login == form.login.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
+            return redirect("/")
+        return render_template('login.html',
+                               message="Неправильный логин или пароль",
+                               form=form)
+    return render_template('login.html', title='Авторизация', form=form)
 
 
 # ---- </auth>
-
 # -- </nolog>
 
 # -- <login> Login required
-
 # ---- <user> User's account and their own posts
-
 @app.route('/me')
 def me():
     # check if logged in - if not, send to /register with info to redirect back to /me after registration
@@ -251,11 +282,9 @@ def create_post():
 # add bookmark - while the ones before should at the very least refresh the current
 #               page, I'm not really that sure with this one in particular - you will NOT be on the
 #               bookmark page while adding a bookmark, so there's not much need in reloading, is there?
-
 # ----</actions>
 
 # ---- <sub> User's subscriptions / friends (aka mutuals) and their posts
-
 @app.route('/subscriptions')
 def subscriptions():
     # check if logged in - if not, send to /register with info to redirect back to this after registration
@@ -291,9 +320,7 @@ def myfeed_friend(page):
 
 
 # ---- </sub>
-
 # -- </login>
-
 # </social>
 
 if __name__ == '__main__':

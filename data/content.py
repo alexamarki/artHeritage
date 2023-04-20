@@ -4,7 +4,7 @@ from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
 
 
-class Posts(SqlAlchemyBase):
+class Content(SqlAlchemyBase):
     __tablename__ = 'content'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,

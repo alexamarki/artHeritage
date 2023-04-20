@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block navbut %}
-<button class="btn btn-outline-dark" type="submit">Log in/Register</button>
+<a href="/logreg" class="btn btn-outline-dark" type="submit">Log in/Register</a>
 {% endblock %}
 
 {% block content %}
@@ -10,12 +10,17 @@
     <h1>Welcome to Art Heritage Search!</h1>
     <br>
     <h3>The go-to place for art - research, get inspired, connect with your ancestry.</h3>
+    <br>
+    <form action="" method="post">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" name="plain_query" placeholder="Embark on an adventure"
+                   aria-label="Embark on an adventure"
+                   aria-describedby="button-addon2">
+            <button class="btn btn-outline-dark" type="submit" id="button-addon2">Search</button>
+        </div>
+    </form>
 </div>
-<br>
-<div class="input-group mb-3">
-    <input type="text" class="form-control" placeholder="Embark on an adventure" aria-label="Embark on an adventure"
-           aria-describedby="button-addon2">
-    <button class="btn btn-outline-dark" type="button" id="button-addon2">Search</button>
-</div>
+
+
 {% endblock %}
 
