@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block navbut %}
+{% if current_user.is_authenticated %}
+<h4>{{current_user.name}}</h4>
+<a href="/logout" class="btn btn-outline-dark" type="submit">Log out</a>
+{% else %}
+<a href="/logreg" class="btn btn-outline-dark" type="submit">Log in/Register</a>
+{% endif %}
+{% endblock %}
+

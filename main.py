@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, EmailField, PasswordField, BooleanField
 from wtforms.validators import DataRequired
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from api_request import basic_request, configurated_request, info_get
 import data.db_session as db_session
 from data.users import Users
@@ -67,6 +67,7 @@ login_manager.init_app(app)
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(Users).get(user_id)
+
 
 # </handler>
 
@@ -181,43 +182,40 @@ def logreg():
 
 @app.route('/register', methods=['GET', 'POST'])
 def reqister():
-    form = RegisterForm()
-    if form.validate_on_submit():
-        if form.password.data != form.password_repeat.data:
-            return render_template('register.html', title='Регистрация',
-                                   form=form,
-                                   message="Пароли не совпадают")
+    reg_form = RegisterForm()
+    if reg_form.validate_on_submit():
+        if reg_form.password.data != reg_form.password_repeat.data:
+            return render_template('register.html', form=reg_form,
+                                   message="Mismatching passwords")
         db_sess = db_session.create_session()
-        if db_sess.query(Users).filter(Users.login == form.login.data).first():
-            return render_template('register.html', title='Регистрация',
-                                   form=form,
-                                   message="Такой пользователь уже есть")
+        if db_sess.query(Users).filter(Users.login == reg_form.login.data).first():
+            return render_template('register.html', form=reg_form,
+                                   message="A user with this login already exists")
         user = Users(
-            name=form.name.data,
-            username=form.username.data,
-            login=form.login.data,
-            about=form.about.data
+            name=reg_form.name.data,
+            username=reg_form.username.data,
+            login=reg_form.login.data,
+            about=reg_form.about.data
         )
-        user.set_password(form.password.data)
+        user.set_password(reg_form.password.data)
         db_sess.add(user)
         db_sess.commit()
         return redirect('/login')
-    return render_template('register.html', title='Регистрация', form=form)
+    return render_template('register.html', form=reg_form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
+    log_form = LoginForm()
+    if log_form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(Users).filter(Users.login == form.login.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember_me.data)
+        user = db_sess.query(Users).filter(Users.login == log_form.login.data).first()
+        if user and user.check_password(log_form.password.data):
+            login_user(user, remember=log_form.remember_me.data)
             return redirect("/")
-        return render_template('login.html',
-                               message="Неправильный логин или пароль",
-                               form=form)
-    return render_template('login.html', title='Авторизация', form=form)
+        return render_template('login.html', message="Incorrect login or password",
+                               form=log_form)
+    return render_template('login.html', form=log_form)
 
 
 # ---- </auth>
@@ -225,6 +223,13 @@ def login():
 
 # -- <login> Login required
 # ---- <user> User's account and their own posts
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
+
+
 @app.route('/me')
 def me():
     # check if logged in - if not, send to /register with info to redirect back to /me after registration
@@ -325,14 +330,3 @@ def myfeed_friend(page):
 
 if __name__ == '__main__':
     app.run(port=8080, host='127.0.0.1')
-
-# from data.users import Users
-# from data import db_session
-# db_session.global_init("db/user_info.db")
-# user = Users()
-# user.name = "Пользователь 1"
-# user.about = "биография пользователя 1"
-# user.login = "email@email.ru"
-# db_sess = db_session.create_session()
-# db_sess.add(user)
-# db_sess.commit()
