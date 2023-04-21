@@ -2,8 +2,17 @@
 
 {% block navbut %}
 {% if current_user.is_authenticated %}
-<h4>{{current_user.name}}</h4>
-<a href="/logout" class="btn btn-outline-dark" type="submit">Log out</a>
+<div class="d-flex align-middle justify-content-center gap-3">
+    <a href="/me">
+        <img src="/static/img/avatar/avatar{{current_user.id}}.png" class="img-fluid rounded-circle" alt=""
+             height="30px"
+             width="30px">
+    </a>
+    <a href="/me" class="text-decoration-none link-dark">
+        <h4>{{current_user.name}}</h4>
+    </a>
+    <a href="/logout" class="btn btn-outline-dark" type="submit">Log out</a>
+</div>
 {% else %}
 <a href="/logreg" class="btn btn-outline-dark" type="submit">Log in/Register</a>
 {% endif %}

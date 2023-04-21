@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <br>
+    <div align="center">
+        <img src="/static/img/avatar/avatar{{display_id}}.png" class="img-fluid rounded-circle" alt="" height="150px"
+             width="150px">
+        <h1>{{display_name}}</h1>
+        <h5 class="text-secondary">@{{username}}</h5>
+        <div class="container">
+        <div class="row g-2 justify-content-md-center"">
+            <div class="col-md-4 col-6">
+                <div class="card p-2">
+                    <a class="card-block stretched-link text-decoration-none" href="/posts/{{username}}">
+                        <h4 class="card-title">Posts</h4>
+                        <h2 class="card-text">{{p_count}}</h2>
+                        <p class="card-text"><small class="text-muted">Last post: {{p_time}}</small></p>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4 col-6">
+                <div class="card p-2">
+                    <a class="card-block stretched-link text-decoration-none" href="/bookmarks/{{username}}">
+                        <h4 class="card-title">Bookmarks</h4>
+                        <h2 class="card-text">{{bm_count}}</h2>
+                        <p class="card-text"><small class="text-muted">Last bookmark: {{bm_time}}</small></p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if my_page %}
+    <a href="/me/options" class="btn btn-outline-dark" type="submit">Edit profile</a>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}
+

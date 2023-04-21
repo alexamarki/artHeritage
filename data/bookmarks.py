@@ -11,7 +11,6 @@ class Bookmarks(SqlAlchemyBase):
                            primary_key=True, autoincrement=True)
     content_id = sqlalchemy.Column(sqlalchemy.Integer,
                                    sqlalchemy.ForeignKey("content.id"))
-    is_public = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
     u_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
     book_date = sqlalchemy.Column(sqlalchemy.DateTime,

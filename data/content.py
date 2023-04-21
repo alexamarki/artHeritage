@@ -12,6 +12,8 @@ class Content(SqlAlchemyBase):
     content_src = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     content_img = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     content_title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    content_creator = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    content_date = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     interactions = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     latest_interaction = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)

@@ -15,25 +15,35 @@
         </div>
     </form>
     <br>
+    {% set ending = 'full/full/0/default.jpg' %}
     <div class="d-flex flex-wrap">
         <div class="card-deck">
-            {% for card in file['results']['bindings'] %}
+            {% for card in file %}
+            {% if "_iiif_image_base_url" in card["_images"] %}
+            {% set link = card["_images"]["_iiif_image_base_url"] ~ ending %}
+            {% else %}
+            {% set link = '/static/img/missing.png' %}
+            {% endif %}
             <div class="card mb-3" style="max-width: 600px;">
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <a href={{card["mediaURL"]["value"]}}>
-                            <img src={{card["mediaURL"]["value"]}} class="card-img"
+                        <a href={{link}}>
+                            <img src={{link}} class="card-img"
                                  alt="...">
                         </a>
                     </div>
                     <div class="col-md-8">
                         <div class="card-body">
-                            <h5 class="card-title">{{card["title"]["value"]}}</h5>
-                            <p class="card-text">{{card["creator"]["value"]}}</p>
-                            <p class="card-text"><small class="text-muted">{{card["date"]["value"]}}</small></p>
+                            <h5 class="card-title"><a class="text-decoration-none" href='/item/{{card["systemNumber"]}}'>{{card["_primaryTitle"]}}</a>
+                            </h5>
+                            <p class="card-text">{{card["_primaryMaker"]["name"]}}</p>
+                            <p class="card-text"><small class="text-muted">{{card["_primaryDate"]}},
+                                {{card["_primaryPlace"]}}</small></p>
                             <p style="width:70px;">
-                                <img src="/static/img/add_post.png" width="20" height="20"/>
-                                <img src="/static/img/star.png" width="20" height="20"/>
+                                <a href='/newpost/{{card["systemNumber"]}}'><img src="/static/img/add_post.png" width="20"
+                                                                    height="20"/></a>
+                                <a href='/add_bookmark/{{card["systemNumber"]}}'><img src="/static/img/star.png" width="20"
+                                                                         height="20"/></a>
                             </p>
                         </div>
                     </div>

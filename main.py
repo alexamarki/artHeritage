@@ -6,6 +6,8 @@ from flask_login import LoginManager, login_user, current_user, logout_user, log
 from api_request import basic_request, configurated_request, info_get
 import data.db_session as db_session
 from data.users import Users
+from data.content import Content
+from data.bookmarks import Bookmarks
 from forms.user import RegisterForm
 from forms.login import LoginForm
 
@@ -114,18 +116,24 @@ def options():
 #                   def login():
 #                       username = request.args.get('username')
 #                       password = request.args.get('password')    \\\\\\\//////// NEEDED FOR SEARCH PARAMETERS
-@app.route('/item')
-@app.route('/search')
-@app.route('/search/<query>')
+@app.route('/item', methods=['GET', 'POST'])
+@app.route('/search', methods=['GET', 'POST'])
+@app.route('/search/<query>', methods=['GET', 'POST'])
 def search(query=''):
-    return render_template('search.html', file=basic_request(query), query=query)
+    se_form = SearchForm()
+    if se_form.plain_query.data:
+        return redirect(f'/search/{se_form.plain_query.data}')
+    return render_template('search.html', form=se_form, file=basic_request(query), query=query)
     # request the api to make a search
     # if no configurations are requested (base search) - use the main template, which filters out non-artworks and other junk - need to work on that later and applies a basic text search
     # if configs are provided, they are added to the search
 
 
-@app.route('/item/<source>')
-def item(source):
+@app.route('/item/<id>')
+def item(id):
+    data = info_get(id)
+    dict_data = data[0]
+    return render_template('item.html', file=dict_data)
     # check if provided source is a link. if not, redirect to /item or /search
     # use the source link to get data about the aforementioned item from the api
     # return the page witrh the picture, name, author, time period, current location
@@ -156,8 +164,16 @@ def top():
 # ---- <users> User-specific content
 @app.route('/user/<name>')
 def user(name):
-    # me but for any user if they have profile publcity ON, with no check if a person is registered and no access to edit - can use the same template with different data
-    pass
+    db_sess = db_session.create_session()
+    srchd_user = db_sess.query(Users).filter(Users.username == name).first()
+    if current_user.is_authenticated and name == current_user.username:
+        return redirect('/me')
+    if srchd_user:
+        return render_template('profile.html', my_page=False, display_id=srchd_user.id,
+                               display_name=srchd_user.name,
+                               username=name)
+    else:
+        return redirect("/")
 
 
 @app.route('/user/<name>/posts/<page>')
@@ -232,11 +248,11 @@ def logout():
 
 @app.route('/me')
 def me():
-    # check if logged in - if not, send to /register with info to redirect back to /me after registration
-    # get username of the logged in user
-    # do a database search for the aforementioned user - fetch their name, avatar, post count, bookmark count
-    # return a page with all of this
-    pass
+    if current_user.is_authenticated:
+        return render_template('profile.html', my_page=True, display_id=current_user.id, display_name=current_user.name,
+                               username=current_user.username)
+    else:
+        return redirect("/")
 
 
 @app.route('/posts')
@@ -284,9 +300,42 @@ def create_post():
 
 # remove bookmark
 
-# add bookmark - while the ones before should at the very least refresh the current
-#               page, I'm not really that sure with this one in particular - you will NOT be on the
-#               bookmark page while adding a bookmark, so there's not much need in reloading, is there?
+@app.route('/add_bookmark/<item_id>', methods=['GET', 'POST'])
+def add_bookmark(item_id):
+    inf = info_get(item_id)
+    if inf[1] == 0 or not current_user.is_authenticated:
+        redirect("/")
+    else:
+        _content_id = ''
+        db_sess = db_session.create_session()
+        content_record = db_sess.query(Content).filter(Content.content_src == item_id).first()
+        if content_record:
+            _content_id = content_record.id
+            content_record.latest_interaction += 1
+        else:
+            if "_iiif_image_base_url" in inf[0]["_images"]:
+                link = inf[0]["_images"]["_iiif_image_base_url"] + 'full/full/0/default.jpg'
+            else:
+                link = '/static/img/missing.png'
+            record = Content(
+                content_src=item_id,
+                content_img=link,
+                content_title=inf[0]["_primaryTitle"],
+                content_creator=inf[0]["_primaryMaker"],
+                content_date=inf[0]["_primaryDate"],
+                interactions=1
+            )
+            db_sess.add(record)
+            db_sess.commit()
+            _content_id = record.id
+        bookmark = Bookmarks(
+            content_id=_content_id,
+            u_id=current_user.id,
+        )
+        db_sess.add(bookmark)
+        db_sess.commit()
+
+
 # ----</actions>
 
 # ---- <sub> User's subscriptions / friends (aka mutuals) and their posts
