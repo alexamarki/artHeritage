@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 
+{% block navctr %}
+{% if current_user.is_authenticated %}
+<a href="/subfeed/1" class="btn btn-outline-dark" type="submit">My feed</a>
+<a href="/bookmarks/1" class="btn btn-outline-dark" type="submit">My bookmarks</a>
+<a href="/posts/1" class="btn btn-outline-dark" type="submit">My posts</a>
+{% endif %}
+{% endblock %}
 {% block navbut %}
 {% if current_user.is_authenticated %}
 <div class="d-flex align-middle justify-content-center gap-3">
     <a href="/me">
-        <img src="/static/img/avatar/avatar{{current_user.id}}.png" class="img-fluid rounded-circle" alt=""
+        <img src="/static/img/avatar/av_{{current_user.username}}.png" class="img-fluid rounded-circle" alt=""
              height="30px"
              width="30px">
     </a>

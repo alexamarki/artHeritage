@@ -9,7 +9,7 @@
         <h1>{{display_name}}</h1>
         <h5 class="text-secondary">@{{username}}</h5>
         <div class="container">
-        <div class="row g-2 justify-content-md-center"">
+        <div class="row g-2 justify-content-md-center">
             <div class="col-md-4 col-6">
                 <div class="card p-2">
                     <a class="card-block stretched-link text-decoration-none" href="/posts/{{username}}">
@@ -32,6 +32,10 @@
     </div>
     {% if my_page %}
     <a href="/me/options" class="btn btn-outline-dark" type="submit">Edit profile</a>
+    {% elif not my_page and subscribed %}
+    <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Unsubscribe</a>
+    {% else %}
+    <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Subscribe</a>
     {% endif %}
     </div>
 </div>

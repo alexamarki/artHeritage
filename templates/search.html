@@ -8,12 +8,34 @@
     <form action="" method="post">
         <div class="input-group mb-3">
             <input type="text" class="form-control" name="plain_query" placeholder="Embark on an adventure"
-                   value="{{query}}"
+                   value="{{request.args.get('q')}}"
                    aria-label="Embark on an adventure"
                    aria-describedby="button-addon2">
             <button class="btn btn-outline-dark" type="submit" id="button-addon2">Search</button>
         </div>
     </form>
+    <p>
+        <button class="btn btn-link shadow-none" type="button" data-bs-toggle="collapse"
+                data-bs-target="#advancedSearch"
+                aria-expanded="false" aria-controls="advancedSearch">
+            Advanced Search
+        </button>
+    </p>
+    <div class="collapse" id="advancedSearch">
+        <div class="card card-body">
+            <form class="form" action="" method="post">
+                <div class="row">
+                    {% for field in ad_form %}
+                    <div class="col-md-4">
+                        {{ field.label }}<br>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+    </div>
+
     <br>
     {% set ending = 'full/full/0/default.jpg' %}
     <div class="d-flex flex-wrap">
@@ -34,16 +56,19 @@
                     </div>
                     <div class="col-md-8">
                         <div class="card-body">
-                            <h5 class="card-title"><a class="text-decoration-none" href='/item/{{card["systemNumber"]}}'>{{card["_primaryTitle"]}}</a>
+                            <h5 class="card-title"><a class="text-decoration-none"
+                                                      href='/item/{{card["systemNumber"]}}'>{{card["_primaryTitle"]}}</a>
                             </h5>
                             <p class="card-text">{{card["_primaryMaker"]["name"]}}</p>
                             <p class="card-text"><small class="text-muted">{{card["_primaryDate"]}},
                                 {{card["_primaryPlace"]}}</small></p>
                             <p style="width:70px;">
-                                <a href='/newpost/{{card["systemNumber"]}}'><img src="/static/img/add_post.png" width="20"
-                                                                    height="20"/></a>
-                                <a href='/add_bookmark/{{card["systemNumber"]}}'><img src="/static/img/star.png" width="20"
-                                                                         height="20"/></a>
+                                <a href='/newpost?iid={{card["systemNumber"]}}&query="{{query}}"'><img
+                                        src="/static/img/add_post.png" width="20"
+                                        height="20"/></a>
+                                <a href='/add_bookmark?iid={{card["systemNumber"]}}&query="{{query}}"'><img
+                                        src="/static/img/star.png" width="20"
+                                        height="20"/></a>
                             </p>
                         </div>
                     </div>

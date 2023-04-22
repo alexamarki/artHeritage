@@ -1,0 +1,43 @@
+{% extends "base_with_profile_opt.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <br>
+    <h3 align="center">{{page_title}}</h3>
+    <br>
+    <div class="d-flex flex-wrap">
+        <div class="card-deck">
+            {% for bkmrk in bkmrks %}
+            <div class="card mb-3" style="max-width: 600px;">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <a href=/item/{{bkmrk.content.content_img}}>
+                            <img src={{bkmrk.content.content_img}} class="card-img"
+                                 alt="...">
+                        </a>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title"><a class="text-decoration-none"
+                                                      href='/item/{{bkmrk.content.content_src}}'>{{bkmrk.content.content_title}}</a>
+                            </h5>
+                            <p class="card-text">{{bkmrk.content.content_creator}}</p>
+                            <p class="card-text"><small class="text-muted">{{bkmrk.content.content_date}}</small></p>
+                            {% if current_user.is_authenticated and personal %}
+                            <p style="width:70px;">
+                                <a href='/remove_bookmark/{{bkmrk.id}}'><img
+                                        src="/static/img/star.png" width="20"
+                                        height="20"/></a>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

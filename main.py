@@ -8,8 +8,13 @@ import data.db_session as db_session
 from data.users import Users
 from data.content import Content
 from data.bookmarks import Bookmarks
+from data.posts import Posts
+from data.subscriptions import Subscriptions
 from forms.user import RegisterForm
 from forms.login import LoginForm
+from forms.post import PostForm
+from forms.advanced import AdvancedForm
+from flask import request
 
 # ! ! ! ! ! ! ! ! ! ! ! ! ! Comment clarification ! ! ! ! ! ! ! ! ! ! ! ! ! #
 # This is ArtHeritage's main file, which includes all routes and the         #
@@ -50,10 +55,6 @@ from forms.login import LoginForm
 #   and baz() holds the property of tag 2                                    # 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-##### note to self - should probably add a thing that saves the last searched item
-##### when one navigates back to search using built-in browser nav (arrows/swipes)
-
-#####save a login using youtube-esque session ids
 ############### ADD PROTECTION AGAINST SQL INJECTIONS PLSSSSSSSS
 
 app = Flask(__name__)
@@ -85,9 +86,7 @@ class SearchForm(FlaskForm):
 def home():
     se_form = SearchForm()
     if se_form.plain_query.data:
-        return redirect(f'/search/{se_form.plain_query.data}')
-    # add check for auth to fetch name + avatar
-    # return template with vars (type, name, avatar)
+        return redirect(f'/search?q={se_form.plain_query.data}')
     return render_template('main.html', form=se_form)
 
 
@@ -107,38 +106,55 @@ def options():
     # return a page with the current options selected
 
 
-# -- </main>
-
-# -- <search>
-#                   from flask import request
-#       http://10.1.1.1:5000/login?username=alexa&password=pw1
-#                   @app.route(...)
-#                   def login():
-#                       username = request.args.get('username')
-#                       password = request.args.get('password')    \\\\\\\//////// NEEDED FOR SEARCH PARAMETERS
-@app.route('/item', methods=['GET', 'POST'])
 @app.route('/search', methods=['GET', 'POST'])
-@app.route('/search/<query>', methods=['GET', 'POST'])
-def search(query=''):
+def search():
+    query = request.query_string.decode('UTF-8')
     se_form = SearchForm()
+    ad_form = AdvancedForm()
     if se_form.plain_query.data:
-        return redirect(f'/search/{se_form.plain_query.data}')
-    return render_template('search.html', form=se_form, file=basic_request(query), query=query)
-    # request the api to make a search
-    # if no configurations are requested (base search) - use the main template, which filters out non-artworks and other junk - need to work on that later and applies a basic text search
-    # if configs are provided, they are added to the search
+        return redirect(f'/search?q={se_form.plain_query.data.strip()}')
+    if ad_form.is_submitted():
+        add = []
+        if ad_form.title.data:
+            add.append(f'q_object_title={ad_form.title.data}')
+        if ad_form.type.data:
+            add.append(f'q_object_type={ad_form.type.data}')
+        if ad_form.place.data:
+            add.append(f'q_object_place={ad_form.place.data}')
+        if ad_form.mattech.data:
+            add.append(f'q_material_technique={ad_form.mattech.data}')
+        if ad_form.people.data:
+            add.append(f'q_actor={ad_form.people.data}')
+        if ad_form.year_from.data:
+            add.append(f'year_made_from={ad_form.year_from.data}')
+        if ad_form.year_to.data:
+            add.append(f'year_made_to={ad_form.year_to.data}')
+        if ad_form.exist.data:
+            add.append(f'images_exist=1')
+        if ad_form.on_display_at.data:
+            add.append(f'on_display_at={ad_form.on_display_at.data}')
+        if ad_form.order_by.data:
+            add.append(f'order_by={ad_form.order_by.data}')
+        if ad_form.order_sort.data:
+            add.append(f'order_sort={ad_form.order_sort.data}')
+        if ad_form.page_size.data:
+            add.append(f'page_size={ad_form.page_size.data}')
+        if add:
+            return redirect(f'/search?q={request.args.get("q")}&{"&".join(add)}')
+    if len(query.split('&')) <= 1:
+        return render_template('search.html', form=se_form, ad_form=ad_form, file=basic_request(query), query=query)
+    else:
+        return render_template('search.html', form=se_form, ad_form=ad_form, file=configurated_request(query),
+                               query=query)
 
 
 @app.route('/item/<id>')
 def item(id):
     data = info_get(id)
-    dict_data = data[0]
+    if data[1] == 0:
+        return redirect('/search')
+    dict_data = data[0][0]
     return render_template('item.html', file=dict_data)
-    # check if provided source is a link. if not, redirect to /item or /search
-    # use the source link to get data about the aforementioned item from the api
-    # return the page witrh the picture, name, author, time period, current location
-    # maybe a few other artworks by this person
-    pass
 
 
 # -- </search>
@@ -149,11 +165,16 @@ def item(id):
 # ---- <all> Non-user specific content
 @app.route('/feed/<page>')
 def feed(page):
-    # FETCH ALL POSTS, DESC, paged
-    pass
+    db_sess = db_session.create_session()
+    posts = db_sess.query(Posts).filter(Posts.is_public == True).order_by(Posts.post_date.desc()).limit(10).offset(
+        (int(page) - 1) * 10).all()
+    if not posts and page != '1':
+        return redirect('/feed/1')
+    else:
+        return render_template('posts.html', page_title="All posts", posts=posts, personal=False)
 
 
-@app.route('/top')  # top users and top (by posts + bookmarks) artworks
+@app.route('/top')  # top (by posts + bookmarks) artworks
 def top():
     # last
     pass
@@ -164,28 +185,54 @@ def top():
 # ---- <users> User-specific content
 @app.route('/user/<name>')
 def user(name):
+    subscribed = False
     db_sess = db_session.create_session()
     srchd_user = db_sess.query(Users).filter(Users.username == name).first()
     if current_user.is_authenticated and name == current_user.username:
         return redirect('/me')
+    if current_user.is_authenticated:
+        user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_follower_id == current_user.id).filter(
+            Subscriptions.u_id == srchd_user.id).first()
+        if user_follow:
+            subscribed = True
     if srchd_user:
         return render_template('profile.html', my_page=False, display_id=srchd_user.id,
                                display_name=srchd_user.name,
-                               username=name)
+                               username=name, subscribed=subscribed)
     else:
         return redirect("/")
 
 
 @app.route('/user/<name>/posts/<page>')
 def user_posts(name, page):
-    # posts but for any user if they have profile publcity ON, with no check if a person is registered and no access to edit - can use the same template with different data
-    pass
+    if current_user.is_authenticated and name == current_user.username:
+        return redirect(f'/posts/{page}')
+    db_sess = db_session.create_session()
+    user = db_sess.query(Users).filter(Users.username == name).first()
+    if not user:
+        return redirect('/feed/1')
+    posts = db_sess.query(Posts).filter(Posts.u_id == user.id).filter(Posts.is_public == True).order_by(
+        Posts.post_date.desc()).limit(10).offset((int(page) - 1) * 10).all()
+    if not posts and page != '1':
+        return redirect(f'/user/{name}/posts/1')
+    else:
+        return render_template('posts.html', page_title=f"{name}'s posts", posts=posts, personal=False)
 
 
 @app.route('/user/<name>/bookmarks/<page>')
 def user_books(name, page):
-    # bookmarks but for any user if they have profile publcity ON, with no check if a person is registered and no access to edit - can use the same template with different data
-    pass
+    if current_user.is_authenticated and name == current_user.username:
+        return redirect(f'/bookmarks/{page}')
+    db_sess = db_session.create_session()
+    user = db_sess.query(Users).filter(Users.username == name).first()
+    if not user:
+        return redirect('/')
+    books = db_sess.query(Bookmarks).filter(Bookmarks.u_id == user.id).order_by(
+        Bookmarks.book_date.desc()).limit(20).offset((int(page) - 1) * 20).all()
+    if not books and page != '1':
+        return redirect(f'/user/{name}/posts/1')
+    else:
+        return render_template('bookmarks.html', page_title=f"{name}'s bookmarks", bkmrks=books, personal=False)
 
 
 # ---- </users>
@@ -207,12 +254,16 @@ def reqister():
         if db_sess.query(Users).filter(Users.login == reg_form.login.data).first():
             return render_template('register.html', form=reg_form,
                                    message="A user with this login already exists")
+        if db_sess.query(Users).filter(Users.username == reg_form.username.data).first():
+            return render_template('register.html', form=reg_form,
+                                   message="A user with this username already exists")
         user = Users(
             name=reg_form.name.data,
             username=reg_form.username.data,
             login=reg_form.login.data,
             about=reg_form.about.data
         )
+        # print(reg_form.avatar.data) - need to load up avatars
         user.set_password(reg_form.password.data)
         db_sess.add(user)
         db_sess.commit()
@@ -246,131 +297,248 @@ def logout():
     return redirect("/")
 
 
+@login_required
 @app.route('/me')
 def me():
-    if current_user.is_authenticated:
-        return render_template('profile.html', my_page=True, display_id=current_user.id, display_name=current_user.name,
-                               username=current_user.username)
-    else:
-        return redirect("/")
+    return render_template('profile.html', my_page=True, display_id=current_user.id, display_name=current_user.name,
+                           username=current_user.username)
 
 
+@login_required
 @app.route('/posts')
-def my_posts():
-    # check if logged in - if not, send to /register with info to redirect back to /posts after registration
-    # get username of the logged in user
-    # do a database search for all posts by this users, sort by date, descending -- later split into pages.
-    # present posts in a scroll environment with one post taking up the whole span of the page
-    # return page with posts + ability to delete posts on a post-by-post basis
-    pass
+@app.route('/posts/<page>')
+def my_posts(page='1'):
+    db_sess = db_session.create_session()
+    posts = db_sess.query(Posts).filter(Posts.u_id == current_user.id).order_by(Posts.post_date.desc()).limit(
+        10).offset(
+        (int(page) - 1) * 10).all()
+    if not posts and page != '1':
+        return redirect('/posts/1')
+    else:
+        return render_template('posts.html', page_title='My posts', posts=posts, personal=True)
 
 
+@login_required
 @app.route('/bookmarks')
-def my_books():
-    # check if logged in - if not, send to /register with info to redirect back to /bookmarks after registration
-    # get username of the logged in user
-    # do a database search for all bookmarks by this users, sort by date, descending -- later split into pages.
-    # present bookmarks in a scroll env with a few bookmark squares in each row, depending on viewbox size
-    # return page with bookmarks + ability to delete any of them
-    pass
+@app.route('/bookmarks/<page>')
+def my_books(page=1):
+    db_sess = db_session.create_session()
+    books = db_sess.query(Bookmarks).filter(Bookmarks.u_id == current_user.id).order_by(
+        Bookmarks.book_date.desc()).limit(20).offset((int(page) - 1) * 20).all()
+    if not books and page != '1':
+        return redirect('/bookmarks/1')
+    else:
+        return render_template('bookmarks.html', page_title="My bookmarks", bkmrks=books, personal=True)
 
 
+@login_required
 @app.route('/me/options')
 def profile_options():
-    # check if logged in - if not, send to /register with info to redirect back to /me/options after registration
-    # check the db for if there were any changes to the options template
-    # if there were - fetch their config file
-    # present all the options in their current state
-    # return the page with a form and a var of all the options and their values in an array to be passed into the template
     pass
 
 
 # ---- </user>
 
 # ----<actions> User's actions on their own posts
-@app.route('/newpost')
-def create_post():
-    pass  # need some way to pass artwork info to here
-
-
-### not sure if the following ones should be pages, or if they can just be functions
-### that restart this page. idk basically? prolly pages
-
-# deletepost
-
-# remove bookmark
-
-@app.route('/add_bookmark/<item_id>', methods=['GET', 'POST'])
-def add_bookmark(item_id):
-    inf = info_get(item_id)
-    if inf[1] == 0 or not current_user.is_authenticated:
-        redirect("/")
+def check_existence(db_sess, item_id, query, item_obj, bkmrk=False):
+    content_record = db_sess.query(Content).filter(Content.content_src == item_id).first()
+    if content_record:
+        if bkmrk and db_sess.query(Bookmarks).filter(Bookmarks.content_id == content_record.id).first():
+            return redirect(f'/search/{query}')
+        _content_id = content_record.id
+        content_record.interactions += 1
     else:
-        _content_id = ''
-        db_sess = db_session.create_session()
-        content_record = db_sess.query(Content).filter(Content.content_src == item_id).first()
-        if content_record:
-            _content_id = content_record.id
-            content_record.latest_interaction += 1
+        if "_iiif_image_base_url" in item_obj["_images"]:
+            link = item_obj["_images"]["_iiif_image_base_url"] + 'full/full/0/default.jpg'
         else:
-            if "_iiif_image_base_url" in inf[0]["_images"]:
-                link = inf[0]["_images"]["_iiif_image_base_url"] + 'full/full/0/default.jpg'
+            link = '/static/img/missing.png'
+        if 'name' in item_obj["_primaryMaker"]:
+            _content_creator = item_obj["_primaryMaker"]["name"]
+        else:
+            _content_creator = 'Unknown author'
+        if item_obj["_primaryTitle"]:
+            _content_title = item_obj["_primaryTitle"]
+        else:
+            _content_title = 'Unknown title'
+        record = Content(
+            content_src=item_id,
+            content_img=link,
+            content_title=_content_title,
+            content_creator=_content_creator,
+            content_date=item_obj["_primaryDate"],
+            interactions=1
+        )
+        db_sess.add(record)
+        db_sess.commit()
+        _content_id = record.id
+    return _content_id
+
+
+@login_required
+@app.route('/newpost', methods=['GET', 'POST'])
+def create_post():
+    post_form = PostForm()
+    db_sess = db_session.create_session()
+    item_id = request.args.get('iid')
+    query = request.args.get('query').strip('"')
+    if post_form.validate_on_submit():
+        _u_title = post_form.title.data
+        _u_content = post_form.content.data
+        _is_public = post_form.public.data
+        if request.args.get('iid'):
+            item_obj, size = info_get(item_id)
+            item_obj = item_obj[0]
+            if size == 0 or not current_user.is_authenticated:
+                return redirect("/")
             else:
-                link = '/static/img/missing.png'
-            record = Content(
-                content_src=item_id,
-                content_img=link,
-                content_title=inf[0]["_primaryTitle"],
-                content_creator=inf[0]["_primaryMaker"],
-                content_date=inf[0]["_primaryDate"],
-                interactions=1
+                _content_id = check_existence(db_sess, item_id, query, item_obj)
+                post = Posts(
+                    content_id=_content_id,
+                    u_id=current_user.id,
+                    u_title=_u_title,
+                    u_content=_u_content,
+                    is_public=_is_public
+                )
+        else:
+            post = Posts(
+                u_id=current_user.id,
+                u_title=_u_title,
+                u_content=_u_content,
+                is_public=_is_public
             )
-            db_sess.add(record)
-            db_sess.commit()
-            _content_id = record.id
+        db_sess.add(post)
+        db_sess.commit()
+        if query:
+            return redirect(f'/search?{query}')
+        else:
+            return redirect('/my_posts')
+    return render_template('newpost.html', item_id=item_id, form=post_form)
+
+
+@login_required
+@app.route('/add_bookmark', methods=['GET', 'POST'])
+def add_bookmark():
+    item_id = request.args.get('iid')
+    query = request.args.get('query').strip('"')
+    item_obj, size = info_get(item_id)
+    item_obj = item_obj[0]
+    if size == 0 or not current_user.is_authenticated:
+        return redirect("/")
+    else:
+        db_sess = db_session.create_session()
+        _content_id = check_existence(db_sess, item_id, query, item_obj, bkmrk=True)
         bookmark = Bookmarks(
             content_id=_content_id,
-            u_id=current_user.id,
+            u_id=current_user.id
         )
         db_sess.add(bookmark)
         db_sess.commit()
+    return redirect(f'/search?{query}')
+
+
+def delete_agent(table, id):
+    db_sess = db_session.create_session()
+    to_del = db_sess.query(table).filter(table.id == int(id)).first()
+    if to_del:
+        db_sess.delete(to_del)
+        db_sess.commit()
+
+
+@login_required
+@app.route('/deletepost/<post_id>', methods=['GET', 'POST'])
+def delete_post(post_id):
+    delete_agent(Posts, post_id)
+    return redirect('/posts')
+
+
+@login_required
+@app.route('/remove_bookmark/<book_id>', methods=['GET', 'POST'])
+def remove_book(book_id):
+    delete_agent(Bookmarks, book_id)
+    return redirect('/bookmarks')
 
 
 # ----</actions>
 
 # ---- <sub> User's subscriptions / friends (aka mutuals) and their posts
+@login_required
+@app.route('/subscribe/<user>')
+def subscribe(user):
+    if user == current_user.username:
+        return redirect('/')
+    db_sess = db_session.create_session()
+    subscribe_to_id = db_sess.query(Users).filter(Users.username == user).first().id
+    user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_follower_id == current_user.id).filter(
+        Subscriptions.u_id == subscribe_to_id).first()
+    if not user_follow:
+        subscription = Subscriptions(
+            u_id=subscribe_to_id,
+            u_follower_id=current_user.id
+        )
+        db_sess.add(subscription)
+    else:
+        db_sess.delete(user_follow)
+    db_sess.commit()
+    return redirect(f'/user/{user}')
+
+
+@login_required
+@app.route('/subscribers')
+def subscribers():
+    nosubs = False
+    subs = []
+    db_sess = db_session.create_session()
+    user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_id == current_user.id).all()
+    if not user_follow:
+        nosubs = True
+    else:
+        for user in user_follow:
+            more_info = db_sess.query(Users).filter(Users.id == user.u_follower_id).first()
+            subs.append((more_info.username, more_info.name))
+    return render_template('userlist.html', nosubs=nosubs, users_l=subs)
+
+
+@login_required
 @app.route('/subscriptions')
 def subscriptions():
-    # check if logged in - if not, send to /register with info to redirect back to this after registration
-    # get username of the logged in user
-    # check the list of subscriptions of this user
-    pass
+    nosubs = False
+    subs = []
+    db_sess = db_session.create_session()
+    user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_follower_id == current_user.id).all()
+    if not user_follow:
+        nosubs = True
+    else:
+        for user in user_follow:
+            subs.append((user.users.username, user.users.name))
+    return render_template('userlist.html', nosubs=nosubs, users_l=subs)
 
 
+@login_required
 @app.route('/subfeed/<page>')
 def myfeed_sub(page):
-    # check if logged in - if not, send to /register with info to redirect back to this after registration
-    # get username of the logged in user
-    # check the list of subscriptions of this user
-    # fetch posts by these people. sort by time (descending) + divide into pages later
-    pass
+    db_sess = db_session.create_session()
+    user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_follower_id == current_user.id).all()
+    if not user_follow:
+        redirect('/feed/1')
+    uids = [user.u_id for user in user_follow]
+    posts = db_sess.query(Posts).filter(Posts.u_id.in_(uids)).order_by(Posts.post_date.desc()).limit(
+        10).offset((int(page) - 1) * 10).all()
+    if not posts and page != '1':
+        return redirect('/subfeed/1')
+    else:
+        return render_template('posts.html', page_title='My subscription feed', posts=posts, personal=False)
 
 
-@app.route('/friends')
-def friends():
-    # check if logged in - if not, send to /register with info to redirect back to this after registration
-    # get username of the logged in user
-    # check the list of subscriptions of this user, check which users have the current account in their subs too
-    pass
-
-
-@app.route('/friendfeed/<page>')
-def myfeed_friend(page):
-    # check if logged in - if not, send to /register with info to redirect back to this after registration
-    # get username of the logged in user
-    # check the list of subscriptions of this user, check which users have the current account in their subs too
-    # fetch posts by these people. sort by time (descending) + divide into pages later
-    pass
+# @login_required
+# @app.route('/friends')
+# def friends():
+#     pass
+#
+#
+# @login_required
+# @app.route('/friendfeed/<page>')
+# def myfeed_friend(page):
+#     pass
 
 
 # ---- </sub>

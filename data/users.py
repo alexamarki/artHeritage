@@ -21,6 +21,7 @@ class Users(SqlAlchemyBase, UserMixin):
                                   default=datetime.datetime.now)
     bookmarks = orm.relationship("Bookmarks", back_populates="users")
     posts = orm.relationship("Posts", back_populates="users")
+    subscriptions = orm.relationship("Subscriptions", back_populates="users")
 
     def set_password(self, password):
         self.hashed_pass = generate_password_hash(password)

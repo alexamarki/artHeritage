@@ -30,6 +30,11 @@
             {{ form.about.label }}<br>
             {{ form.about(class="form-control", placeholder="About me...") }}
         </p>
+        <p>
+            {{ form.avatar() }}
+            {{ form.avatar.label }}
+        </p>
+        <br>
         <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
         {{message}}
     </form>

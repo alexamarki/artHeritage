@@ -1,0 +1,50 @@
+{% extends "base_with_profile_opt.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <br>
+    <h3 align="center">{{page_title}}</h3>
+    <br>
+    <div class="d-flex flex-wrap justify-content-center">
+        <div class="card-deck">
+            {% for post in posts %}
+            <div class="card card-limited">
+                <div class="card-body">
+                    <h5 class="card-title">{{post.u_title}}</h5>
+                    <p class="card-text">{{post.u_content}}</p>
+                    {% if personal and current_user.is_authenticated %}
+                    <p style="width:20px;" align="right">
+                        <a href='/deletepost/{{post.id}}'><img
+                                src="/static/img/trash.png" width="20"
+                                height="20"/></a>
+                    </p>
+                    <p class="card-text"><small class="text-muted">{{post.post_date}}</small></p>
+                    {% else %}
+                    <p class="card-text"><small class="text-muted">By {{post.users.name}}
+                        (@{{post.users.username}}), {{post.post_date}}</small></p>
+                    {% endif %}
+                </div>
+                {% if post.content %}
+                <div class="col-md-2">
+                    <div class="container-fluid">
+                        <a href=/item/{{post.content.content_src}}>
+                            <img class="card-img-bottom img-fluid" src="{{post.content.content_img}} "
+                                 alt="Card image cap">
+                        </a>
+                        <br>
+                        <h5 class="card-title">{{post.content.content_title}}</h5>
+                        <p class="card-text">{{post.content.content_creator}}</p>
+                        <p class="card-text"><small class="text-muted">{{post.content.content_date}}</small></p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <br>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
