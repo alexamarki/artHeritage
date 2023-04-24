@@ -15,7 +15,7 @@
         </div>
     </form>
     <p>
-        <button class="btn btn-link shadow-none" type="button" data-bs-toggle="collapse"
+        <button class="btn btn-link shadow-none" type="button" style="text-decoration: none;" data-bs-toggle="collapse"
                 data-bs-target="#advancedSearch"
                 aria-expanded="false" aria-controls="advancedSearch">
             Advanced Search
@@ -23,15 +23,17 @@
     </p>
     <div class="collapse" id="advancedSearch">
         <div class="card card-body">
-            <form class="form" action="" method="post">
-                <div class="row">
-                    {% for field in ad_form %}
-                    <div class="col-md-4">
-                        {{ field.label }}<br>
-                        {{ field }}
-                    </div>
-                    {% endfor %}
-                </div>
+            <form action="" method="post">
+                {{ form.hidden_tag() }}
+                {% for field in ad_form %}
+                {{ field.label }}<br>
+                {% if field == ad_form.exist %}
+                {{ field() }}
+                {% else %}
+                {{ field(class="form-control") }}
+                {% endif %}
+                <br>
+                {% endfor %}
             </form>
         </div>
     </div>

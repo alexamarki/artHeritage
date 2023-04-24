@@ -22,6 +22,7 @@ class Users(SqlAlchemyBase, UserMixin):
     bookmarks = orm.relationship("Bookmarks", back_populates="users")
     posts = orm.relationship("Posts", back_populates="users")
     subscriptions = orm.relationship("Subscriptions", back_populates="users")
+    avatar = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
     def set_password(self, password):
         self.hashed_pass = generate_password_hash(password)

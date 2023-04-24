@@ -1,7 +1,6 @@
+import os
+from PIL import Image
 from flask import Flask, render_template, redirect
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, EmailField, PasswordField, BooleanField
-from wtforms.validators import DataRequired
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from api_request import basic_request, configurated_request, info_get
 import data.db_session as db_session
@@ -10,10 +9,9 @@ from data.content import Content
 from data.bookmarks import Bookmarks
 from data.posts import Posts
 from data.subscriptions import Subscriptions
-from forms.user import RegisterForm
-from forms.login import LoginForm
-from forms.post import PostForm
-from forms.advanced import AdvancedForm
+from forms.user_forms import RegisterForm, LoginForm, EditForm
+from forms.post_forms import PostForm
+from forms.search_forms import AdvancedForm, SearchForm
 from flask import request
 
 # ! ! ! ! ! ! ! ! ! ! ! ! ! Comment clarification ! ! ! ! ! ! ! ! ! ! ! ! ! #
@@ -59,6 +57,7 @@ from flask import request
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024
 db_session.global_init("db/user_info.db")
 
 # <handler> Login, error handling via Flask
@@ -76,9 +75,6 @@ def load_user(user_id):
 
 # <SE> ArtHeritage as a search engine + base website things
 # -- <main>
-class SearchForm(FlaskForm):
-    plain_query = StringField('text', validators=[DataRequired()])
-    search_btn = SubmitField('Search')
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -114,31 +110,20 @@ def search():
     if se_form.plain_query.data:
         return redirect(f'/search?q={se_form.plain_query.data.strip()}')
     if ad_form.is_submitted():
+        params_VnA = ['q_object_title=', 'q_object_type=', 'q_object_place', 'q_material_technique=', 'q_actor=',
+                      'year_made_from=', 'year_made_to=', 'images_exist=1', 'on_display_at=', 'order_by=',
+                      'order_sort=', 'page_size=']
         add = []
-        if ad_form.title.data:
-            add.append(f'q_object_title={ad_form.title.data}')
-        if ad_form.type.data:
-            add.append(f'q_object_type={ad_form.type.data}')
-        if ad_form.place.data:
-            add.append(f'q_object_place={ad_form.place.data}')
-        if ad_form.mattech.data:
-            add.append(f'q_material_technique={ad_form.mattech.data}')
-        if ad_form.people.data:
-            add.append(f'q_actor={ad_form.people.data}')
-        if ad_form.year_from.data:
-            add.append(f'year_made_from={ad_form.year_from.data}')
-        if ad_form.year_to.data:
-            add.append(f'year_made_to={ad_form.year_to.data}')
-        if ad_form.exist.data:
-            add.append(f'images_exist=1')
-        if ad_form.on_display_at.data:
-            add.append(f'on_display_at={ad_form.on_display_at.data}')
-        if ad_form.order_by.data:
-            add.append(f'order_by={ad_form.order_by.data}')
-        if ad_form.order_sort.data:
-            add.append(f'order_sort={ad_form.order_sort.data}')
-        if ad_form.page_size.data:
-            add.append(f'page_size={ad_form.page_size.data}')
+        row_c = 0
+        for row in ad_form:
+            print(row.id)
+            if row.data and row.id != 'submit':
+                if row.id == 'exist':
+                    add.append('images_exist=1')
+                else:
+                    add.append(params_VnA[row_c] + row.data)
+            row_c += 1
+            print(row, row_c)
         if add:
             return redirect(f'/search?q={request.args.get("q")}&{"&".join(add)}')
     if len(query.split('&')) <= 1:
@@ -163,13 +148,14 @@ def item(id):
 # <social> ArtHeritage as a social network \/
 # -- <nolog> No login required
 # ---- <all> Non-user specific content
-@app.route('/feed/<page>')
+@app.route('/feed')
+@app.route('/feed/<int:page>')
 def feed(page):
     db_sess = db_session.create_session()
     posts = db_sess.query(Posts).filter(Posts.is_public == True).order_by(Posts.post_date.desc()).limit(10).offset(
-        (int(page) - 1) * 10).all()
-    if not posts and page != '1':
-        return redirect('/feed/1')
+        (page - 1) * 10).all()
+    if not posts and page != 1:
+        return redirect('/feed')
     else:
         return render_template('posts.html', page_title="All posts", posts=posts, personal=False)
 
@@ -183,28 +169,43 @@ def top():
 # ---- </all>
 
 # ---- <users> User-specific content
+def user_page_loader(db_sess, user_p):
+    posts = db_sess.query(Posts.post_date).filter(Posts.u_id == user_p.id).filter(
+        Posts.is_public == True).order_by(Posts.post_date.desc())
+    post_count = posts.count()
+    post_time = posts.first()
+    bookmarks = db_sess.query(Bookmarks.book_date).filter(Bookmarks.u_id == user_p.id).order_by(
+        Bookmarks.book_date.desc())
+    bookmark_count = bookmarks.count()
+    bookmark_time = bookmarks.first()
+    return post_count, post_time, bookmark_count, bookmark_time
+
+
 @app.route('/user/<name>')
 def user(name):
+    if current_user.is_authenticated and name == current_user.username:
+        return redirect('/me')
     subscribed = False
     db_sess = db_session.create_session()
     srchd_user = db_sess.query(Users).filter(Users.username == name).first()
-    if current_user.is_authenticated and name == current_user.username:
-        return redirect('/me')
-    if current_user.is_authenticated:
-        user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_follower_id == current_user.id).filter(
-            Subscriptions.u_id == srchd_user.id).first()
-        if user_follow:
-            subscribed = True
     if srchd_user:
+        if current_user.is_authenticated:
+            user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_follower_id == current_user.id).filter(
+                Subscriptions.u_id == srchd_user.id).first()
+            if user_follow:
+                subscribed = True
+        post_count, post_time, bookmark_count, bookmark_time = user_page_loader(db_sess, srchd_user)
         return render_template('profile.html', my_page=False, display_id=srchd_user.id,
-                               display_name=srchd_user.name,
-                               username=name, subscribed=subscribed)
+                               display_name=srchd_user.name, about=srchd_user.about,
+                               username=name, subscribed=subscribed, p_count=post_count, bm_count=bookmark_count,
+                               p_time=post_time, bm_time=bookmark_time)
     else:
         return redirect("/")
 
 
-@app.route('/user/<name>/posts/<page>')
-def user_posts(name, page):
+@app.route('/user/<name>/posts')
+@app.route('/user/<name>/posts/<int:page>')
+def user_posts(name, page=1):
     if current_user.is_authenticated and name == current_user.username:
         return redirect(f'/posts/{page}')
     db_sess = db_session.create_session()
@@ -212,15 +213,16 @@ def user_posts(name, page):
     if not user:
         return redirect('/feed/1')
     posts = db_sess.query(Posts).filter(Posts.u_id == user.id).filter(Posts.is_public == True).order_by(
-        Posts.post_date.desc()).limit(10).offset((int(page) - 1) * 10).all()
-    if not posts and page != '1':
-        return redirect(f'/user/{name}/posts/1')
+        Posts.post_date.desc()).limit(10).offset((page - 1) * 10).all()
+    if not posts and page != 1:
+        return redirect(f'/user/{name}/posts')
     else:
         return render_template('posts.html', page_title=f"{name}'s posts", posts=posts, personal=False)
 
 
-@app.route('/user/<name>/bookmarks/<page>')
-def user_books(name, page):
+@app.route('/user/<name>/bookmarks')
+@app.route('/user/<name>/bookmarks/<int:page>')
+def user_books(name, page=1):
     if current_user.is_authenticated and name == current_user.username:
         return redirect(f'/bookmarks/{page}')
     db_sess = db_session.create_session()
@@ -228,9 +230,9 @@ def user_books(name, page):
     if not user:
         return redirect('/')
     books = db_sess.query(Bookmarks).filter(Bookmarks.u_id == user.id).order_by(
-        Bookmarks.book_date.desc()).limit(20).offset((int(page) - 1) * 20).all()
-    if not books and page != '1':
-        return redirect(f'/user/{name}/posts/1')
+        Bookmarks.book_date.desc()).limit(20).offset((page - 1) * 20).all()
+    if not books and page != 1:
+        return redirect(f'/user/{name}/bookmarks')
     else:
         return render_template('bookmarks.html', page_title=f"{name}'s bookmarks", bkmrks=books, personal=False)
 
@@ -241,6 +243,16 @@ def user_books(name, page):
 @app.route('/logreg')
 def logreg():
     return render_template('logReg_prompt.html')
+
+
+def image_cropper(img, w, h):
+    img_w, img_h = img.size
+    return img.crop(((img_w - w) // 2, (img_h - h) // 2, (img_w + w) // 2, (img_h + h) // 2))
+
+
+def image_square_thumbnail_maker(file, crop_size):
+    img = Image.open(file)
+    return image_cropper(img, min(img.size), min(img.size)).resize(crop_size, Image.LANCZOS)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -257,13 +269,19 @@ def reqister():
         if db_sess.query(Users).filter(Users.username == reg_form.username.data).first():
             return render_template('register.html', form=reg_form,
                                    message="A user with this username already exists")
+        file = reg_form.avatar.data
+        filename = 'av__blank'
+        if file:
+            filename = f'av_{reg_form.username.data}.png'
+            pfp = image_square_thumbnail_maker(file, (500, 500))
+            pfp.save(os.path.join('static/img/avatar', filename))
         user = Users(
             name=reg_form.name.data,
             username=reg_form.username.data,
             login=reg_form.login.data,
-            about=reg_form.about.data
+            about=reg_form.about.data,
+            avatar=filename
         )
-        # print(reg_form.avatar.data) - need to load up avatars
         user.set_password(reg_form.password.data)
         db_sess.add(user)
         db_sess.commit()
@@ -300,41 +318,60 @@ def logout():
 @login_required
 @app.route('/me')
 def me():
+    db_sess = db_session.create_session()
+    post_count, post_time, bookmark_count, bookmark_time = user_page_loader(db_sess, current_user)
     return render_template('profile.html', my_page=True, display_id=current_user.id, display_name=current_user.name,
-                           username=current_user.username)
+                           username=current_user.username, about=current_user.about, p_count=post_count,
+                           bm_count=bookmark_count, p_time=post_time, bm_time=bookmark_time)
 
 
 @login_required
 @app.route('/posts')
-@app.route('/posts/<page>')
-def my_posts(page='1'):
+@app.route('/posts/<int:page>')
+def my_posts(page=1):
     db_sess = db_session.create_session()
     posts = db_sess.query(Posts).filter(Posts.u_id == current_user.id).order_by(Posts.post_date.desc()).limit(
-        10).offset(
-        (int(page) - 1) * 10).all()
-    if not posts and page != '1':
-        return redirect('/posts/1')
+        10).offset((page - 1) * 10).all()
+    if not posts and page != 1:
+        return redirect('/posts')
     else:
         return render_template('posts.html', page_title='My posts', posts=posts, personal=True)
 
 
 @login_required
 @app.route('/bookmarks')
-@app.route('/bookmarks/<page>')
+@app.route('/bookmarks/<int:page>')
 def my_books(page=1):
     db_sess = db_session.create_session()
     books = db_sess.query(Bookmarks).filter(Bookmarks.u_id == current_user.id).order_by(
-        Bookmarks.book_date.desc()).limit(20).offset((int(page) - 1) * 20).all()
-    if not books and page != '1':
-        return redirect('/bookmarks/1')
+        Bookmarks.book_date.desc()).limit(20).offset((page - 1) * 20).all()
+    if not books and page != 1:
+        return redirect('/bookmarks')
     else:
         return render_template('bookmarks.html', page_title="My bookmarks", bkmrks=books, personal=True)
 
 
 @login_required
-@app.route('/me/options')
+@app.route('/me/options', methods=['GET', 'POST'])
 def profile_options():
-    pass
+    edit_form = EditForm(name=current_user.name, about=current_user.about)
+    if edit_form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(Users).filter(Users.login == current_user.login).first()
+        if not user and user.check_password(edit_form.password.data):
+            return render_template('edit.html', message="Incorrect password",
+                                   form=edit_form)
+        file = edit_form.avatar.data
+        if file:
+            pfp = image_square_thumbnail_maker(file, (500, 500))
+            pfp.save(os.path.join('static/img/avatar', f'av_{current_user.username}.png'))
+            if user.avatar == 'av__blank':
+                user.avatar = f'av_{current_user.username}'
+        user.name = edit_form.name.data
+        user.about = edit_form.about.data
+        db_sess.commit()
+        return redirect('/me')
+    return render_template('edit.html', form=edit_form)
 
 
 # ---- </user>
@@ -388,7 +425,7 @@ def create_post():
         if request.args.get('iid'):
             item_obj, size = info_get(item_id)
             item_obj = item_obj[0]
-            if size == 0 or not current_user.is_authenticated:
+            if size == 0:
                 return redirect("/")
             else:
                 _content_id = check_existence(db_sess, item_id, query, item_obj)
@@ -422,7 +459,7 @@ def add_bookmark():
     query = request.args.get('query').strip('"')
     item_obj, size = info_get(item_id)
     item_obj = item_obj[0]
-    if size == 0 or not current_user.is_authenticated:
+    if size == 0:
         return redirect("/")
     else:
         db_sess = db_session.create_session()
@@ -438,21 +475,21 @@ def add_bookmark():
 
 def delete_agent(table, id):
     db_sess = db_session.create_session()
-    to_del = db_sess.query(table).filter(table.id == int(id)).first()
+    to_del = db_sess.query(table).filter(table.id == id).first()
     if to_del:
         db_sess.delete(to_del)
         db_sess.commit()
 
 
 @login_required
-@app.route('/deletepost/<post_id>', methods=['GET', 'POST'])
+@app.route('/deletepost/<int:post_id>', methods=['GET', 'POST'])
 def delete_post(post_id):
     delete_agent(Posts, post_id)
     return redirect('/posts')
 
 
 @login_required
-@app.route('/remove_bookmark/<book_id>', methods=['GET', 'POST'])
+@app.route('/remove_bookmark/<int:book_id>', methods=['GET', 'POST'])
 def remove_book(book_id):
     delete_agent(Bookmarks, book_id)
     return redirect('/bookmarks')
@@ -494,7 +531,7 @@ def subscribers():
     else:
         for user in user_follow:
             more_info = db_sess.query(Users).filter(Users.id == user.u_follower_id).first()
-            subs.append((more_info.username, more_info.name))
+            subs.append((more_info.username, more_info.name, more_info.avatar))
     return render_template('userlist.html', nosubs=nosubs, users_l=subs)
 
 
@@ -514,17 +551,18 @@ def subscriptions():
 
 
 @login_required
-@app.route('/subfeed/<page>')
-def myfeed_sub(page):
+@app.route('/subfeed')
+@app.route('/subfeed/<int:page>')
+def myfeed_sub(page=1):
     db_sess = db_session.create_session()
     user_follow = db_sess.query(Subscriptions).filter(Subscriptions.u_follower_id == current_user.id).all()
     if not user_follow:
-        redirect('/feed/1')
+        redirect('/feed')
     uids = [user.u_id for user in user_follow]
     posts = db_sess.query(Posts).filter(Posts.u_id.in_(uids)).order_by(Posts.post_date.desc()).limit(
-        10).offset((int(page) - 1) * 10).all()
-    if not posts and page != '1':
-        return redirect('/subfeed/1')
+        10).offset((page - 1) * 10).all()
+    if not posts and page != 1:
+        return redirect('/subfeed')
     else:
         return render_template('posts.html', page_title='My subscription feed', posts=posts, personal=False)
 
