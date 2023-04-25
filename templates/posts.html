@@ -1,4 +1,4 @@
-{% extends "base_with_profile_opt.html" %}
+{% extends "base_profile_pagination.html" %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,7 +8,7 @@
     <div class="d-flex flex-wrap justify-content-center">
         <div class="card-deck">
             {% for post in posts %}
-            <div class="card card-limited">
+            <div class="card card-limited" style="width: 1000px;">
                 <div class="card-body">
                     <h5 class="card-title">{{post.u_title}}</h5>
                     <p class="card-text">{{post.u_content}}</p>
@@ -18,10 +18,11 @@
                                 src="/static/img/trash.png" width="20"
                                 height="20"/></a>
                     </p>
-                    <p class="card-text"><small class="text-muted">{{post.post_date}}</small></p>
+                    <p class="card-text"><small class="text-muted">{{post.post_date.strftime('%a %d %b %Y,
+                        %I:%M%p')}}</small></p>
                     {% else %}
                     <p class="card-text"><small class="text-muted">By {{post.users.name}}
-                        (@{{post.users.username}}), {{post.post_date}}</small></p>
+                        (@{{post.users.username}}); On {{post.post_date.strftime('%a %d %b %Y, %I:%M%p')}}</small></p>
                     {% endif %}
                 </div>
                 {% if post.content %}

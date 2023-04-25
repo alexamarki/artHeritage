@@ -1,44 +1,96 @@
 {% extends "base.html" %}
 
+{% if not my_page %}
+{% block navctr %}
+<a href="/top" class="btn btn-outline-dark" type="submit">Top 5 artworks</a>
+<a href="/feed/1" class="btn btn-outline-dark" type="submit">All posts</a>
+{% if current_user.is_authenticated %}
+&nbsp;&nbsp;&nbsp;
+<a href="/subfeed/1" class="btn btn-outline-dark" type="submit">My feed</a>
+<a href="/newpost" class="btn btn-outline-dark" type="submit">New post</a>
+{% endif %}
+{% endblock %}
+
+{% block navbut %}
+{% if current_user.is_authenticated %}
+<div class="d-flex align-middle justify-content-center gap-3">
+    <a href="/me">
+        <img src="/static/img/avatar/{{current_user.avatar}}.png" class="img-fluid rounded-circle" alt=""
+             height="30px"
+             width="30px">
+    </a>
+    <a href="/me" class="text-decoration-none link-dark">
+        <h4>{{current_user.name}}</h4>
+    </a>
+    <div class="btn-group">
+        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+            More...
+        </button>
+        <ul class="dropdown-menu dropdown-menu-lg-end">
+            <li><a class="dropdown-item" href="/posts/1">My posts</a></li>
+            <li><a class="dropdown-item" href="/bookmarks/1">My bookmarks</a></li>
+            <li><a class="dropdown-item" href="/me">My profile</a></li>
+            <li><a class="dropdown-item" href="/me/options">Edit profile</a></li>
+            <li><a class="dropdown-item" href="/subscribers">My subscribers</a></li>
+            <li><a class="dropdown-item" href="/subscribers">My subscriptions</a></li>
+            <li><a class="dropdown-item" href="/logout">Log out</a></li>
+        </ul>
+    </div>
+</div>
+{% else %}
+<a href="/logreg" class="btn btn-outline-dark" type="submit">Log in/Register</a>
+{% endif %}
+{% endblock %}
+{% endif %}
+
 {% block content %}
+{% if bm_time %}
+{% set bm_time = bm_time[0].strftime('%a %d %b %Y, %I:%M%p') %}
+{% endif %}
+{% if p_time %}
+{% set p_time = p_time[0].strftime('%a %d %b %Y, %I:%M%p') %}
+{% endif %}
 <div class="container-fluid">
     <br>
     <div align="center">
         <img src="/static/img/avatar/{{current_user.avatar}}.png" class="img-fluid rounded-circle" alt="" height="150px"
              width="150px">
+        <br>
         <h1>{{display_name}}</h1>
         <h5 class="text-secondary">@{{username}}</h5>
-        <h5 class="text-secondary">{{about}}</h5>
+        <h6 class="text-secondary">{{about}}</h6>
+        <br>
         <div class="container">
-        <div class="row g-2 justify-content-md-center">
-            <div class="col-md-4 col-6">
-                <div class="card p-2">
-                    <a class="card-block stretched-link text-decoration-none" href="/user/{{username}}/posts">
-                        <h4 class="card-title">Posts</h4>
-                        <h2 class="card-text">{{p_count}}</h2>
-                        <p class="card-text"><small class="text-muted">Last post: {{p_time}}</small></p>
-                    </a>
+            <div class="row g-2 justify-content-md-center">
+                <div class="col-md-4 col-6">
+                    <div class="card p-2">
+                        <a class="card-block stretched-link text-decoration-none" href="/user/{{username}}/posts">
+                            <h4 class="card-title">Posts</h4>
+                            <h2 class="card-text">{{p_count}}</h2>
+                            <p class="card-text"><small class="text-muted">Last post: {{p_time}}</small></p>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4 col-6">
-                <div class="card p-2">
-                    <a class="card-block stretched-link text-decoration-none" href="/user/{{username}}/bookmarks">
-                        <h4 class="card-title">Bookmarks</h4>
-                        <h2 class="card-text">{{bm_count}}</h2>
-                        <p class="card-text"><small class="text-muted">Last bookmark: {{bm_time}}</small></p>
-                    </a>
+                <div class="col-md-4 col-6">
+                    <div class="card p-2">
+                        <a class="card-block stretched-link text-decoration-none" href="/user/{{username}}/bookmarks">
+                            <h4 class="card-title">Bookmarks</h4>
+                            <h2 class="card-text">{{bm_count}}</h2>
+                            <p class="card-text"><small class="text-muted">Last bookmark: {{bm_time}}</small></p>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    {% if my_page %}
-    <a href="/me/options" class="btn btn-outline-dark" type="submit">Edit profile</a>
-    {% elif not my_page and subscribed %}
-    <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Unsubscribe</a>
-    {% else %}
-    <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Subscribe</a>
-    {% endif %}
+        <br>
+        {% if my_page %}
+        <a href="/me/options" class="btn btn-outline-dark" type="submit">Edit profile</a>
+        {% elif not my_page and subscribed %}
+        <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Unsubscribe</a>
+        {% else %}
+        <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Subscribe</a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
-

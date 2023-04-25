@@ -13,6 +13,7 @@ from forms.user_forms import RegisterForm, LoginForm, EditForm
 from forms.post_forms import PostForm
 from forms.search_forms import AdvancedForm, SearchForm
 from flask import request
+import datetime
 
 # ! ! ! ! ! ! ! ! ! ! ! ! ! Comment clarification ! ! ! ! ! ! ! ! ! ! ! ! ! #
 # This is ArtHeritage's main file, which includes all routes and the         #
@@ -103,7 +104,8 @@ def options():
 
 
 @app.route('/search', methods=['GET', 'POST'])
-def search():
+@app.route('/search/<int:page>', methods=['GET', 'POST'])
+def search(page=1):
     query = request.query_string.decode('UTF-8')
     se_form = SearchForm()
     ad_form = AdvancedForm()
@@ -117,7 +119,7 @@ def search():
         row_c = 0
         for row in ad_form:
             print(row.id)
-            if row.data and row.id != 'submit':
+            if row.data and row.id not in ('submit', 'csrf_token'):
                 if row.id == 'exist':
                     add.append('images_exist=1')
                 else:
@@ -127,10 +129,11 @@ def search():
         if add:
             return redirect(f'/search?q={request.args.get("q")}&{"&".join(add)}')
     if len(query.split('&')) <= 1:
-        return render_template('search.html', form=se_form, ad_form=ad_form, file=basic_request(query), query=query)
+        return render_template('search.html', form=se_form, ad_form=ad_form, file=basic_request(query, page),
+                               query=query, page=page)
     else:
-        return render_template('search.html', form=se_form, ad_form=ad_form, file=configurated_request(query),
-                               query=query)
+        return render_template('search.html', form=se_form, ad_form=ad_form, file=configurated_request(query, page),
+                               query=query, page=page)
 
 
 @app.route('/item/<id>')
@@ -148,22 +151,22 @@ def item(id):
 # <social> ArtHeritage as a social network \/
 # -- <nolog> No login required
 # ---- <all> Non-user specific content
-@app.route('/feed')
 @app.route('/feed/<int:page>')
 def feed(page):
     db_sess = db_session.create_session()
     posts = db_sess.query(Posts).filter(Posts.is_public == True).order_by(Posts.post_date.desc()).limit(10).offset(
         (page - 1) * 10).all()
     if not posts and page != 1:
-        return redirect('/feed')
+        return redirect('/feed/1')
     else:
-        return render_template('posts.html', page_title="All posts", posts=posts, personal=False)
+        return render_template('posts.html', page_title="All posts", posts=posts, personal=False, page=page)
 
 
 @app.route('/top')  # top (by posts + bookmarks) artworks
 def top():
-    # last
-    pass
+    db_sess = db_session.create_session()
+    top5 = db_sess.query(Content).order_by(Content.interactions.desc()).limit(5).all()
+    return render_template('images.html', page_title="Top-5 artworks", artworks=top5)
 
 
 # ---- </all>
@@ -203,7 +206,6 @@ def user(name):
         return redirect("/")
 
 
-@app.route('/user/<name>/posts')
 @app.route('/user/<name>/posts/<int:page>')
 def user_posts(name, page=1):
     if current_user.is_authenticated and name == current_user.username:
@@ -215,12 +217,11 @@ def user_posts(name, page=1):
     posts = db_sess.query(Posts).filter(Posts.u_id == user.id).filter(Posts.is_public == True).order_by(
         Posts.post_date.desc()).limit(10).offset((page - 1) * 10).all()
     if not posts and page != 1:
-        return redirect(f'/user/{name}/posts')
+        return redirect(f'/user/{name}/posts/1')
     else:
-        return render_template('posts.html', page_title=f"{name}'s posts", posts=posts, personal=False)
+        return render_template('posts.html', page_title=f"{name}'s posts", posts=posts, personal=False, page=page)
 
 
-@app.route('/user/<name>/bookmarks')
 @app.route('/user/<name>/bookmarks/<int:page>')
 def user_books(name, page=1):
     if current_user.is_authenticated and name == current_user.username:
@@ -232,9 +233,10 @@ def user_books(name, page=1):
     books = db_sess.query(Bookmarks).filter(Bookmarks.u_id == user.id).order_by(
         Bookmarks.book_date.desc()).limit(20).offset((page - 1) * 20).all()
     if not books and page != 1:
-        return redirect(f'/user/{name}/bookmarks')
+        return redirect(f'/user/{name}/bookmarks/1')
     else:
-        return render_template('bookmarks.html', page_title=f"{name}'s bookmarks", bkmrks=books, personal=False)
+        return render_template('bookmarks.html', page_title=f"{name}'s bookmarks", bkmrks=books, personal=False,
+                               page=page)
 
 
 # ---- </users>
@@ -326,29 +328,27 @@ def me():
 
 
 @login_required
-@app.route('/posts')
 @app.route('/posts/<int:page>')
 def my_posts(page=1):
     db_sess = db_session.create_session()
     posts = db_sess.query(Posts).filter(Posts.u_id == current_user.id).order_by(Posts.post_date.desc()).limit(
         10).offset((page - 1) * 10).all()
     if not posts and page != 1:
-        return redirect('/posts')
+        return redirect('/posts/1')
     else:
-        return render_template('posts.html', page_title='My posts', posts=posts, personal=True)
+        return render_template('posts.html', page_title='My posts', posts=posts, personal=True, page=page)
 
 
 @login_required
-@app.route('/bookmarks')
 @app.route('/bookmarks/<int:page>')
 def my_books(page=1):
     db_sess = db_session.create_session()
     books = db_sess.query(Bookmarks).filter(Bookmarks.u_id == current_user.id).order_by(
         Bookmarks.book_date.desc()).limit(20).offset((page - 1) * 20).all()
     if not books and page != 1:
-        return redirect('/bookmarks')
+        return redirect('/bookmarks/1')
     else:
-        return render_template('bookmarks.html', page_title="My bookmarks", bkmrks=books, personal=True)
+        return render_template('bookmarks.html', page_title="My bookmarks", bkmrks=books, personal=True, page=page)
 
 
 @login_required
@@ -386,7 +386,7 @@ def check_existence(db_sess, item_id, query, item_obj, bkmrk=False):
         content_record.interactions += 1
     else:
         if "_iiif_image_base_url" in item_obj["_images"]:
-            link = item_obj["_images"]["_iiif_image_base_url"] + 'full/full/0/default.jpg'
+            link = item_obj["_images"]["_iiif_image_base_url"] + 'full/!500,500/0/default.jpg'
         else:
             link = '/static/img/missing.png'
         if 'name' in item_obj["_primaryMaker"]:
@@ -397,12 +397,16 @@ def check_existence(db_sess, item_id, query, item_obj, bkmrk=False):
             _content_title = item_obj["_primaryTitle"]
         else:
             _content_title = 'Unknown title'
+        if item_obj["_primaryDate"]:
+            _content_date = item_obj["_primaryDate"]
+        else:
+            _content_date = 'Unknown date'
         record = Content(
             content_src=item_id,
             content_img=link,
             content_title=_content_title,
             content_creator=_content_creator,
-            content_date=item_obj["_primaryDate"],
+            content_date=_content_date,
             interactions=1
         )
         db_sess.add(record)
@@ -417,7 +421,9 @@ def create_post():
     post_form = PostForm()
     db_sess = db_session.create_session()
     item_id = request.args.get('iid')
-    query = request.args.get('query').strip('"')
+    query=''
+    if request.args.get('query'):
+        query = request.args.get('query').strip('"')
     if post_form.validate_on_submit():
         _u_title = post_form.title.data
         _u_content = post_form.content.data
@@ -448,7 +454,7 @@ def create_post():
         if query:
             return redirect(f'/search?{query}')
         else:
-            return redirect('/my_posts')
+            return redirect('/posts')
     return render_template('newpost.html', item_id=item_id, form=post_form)
 
 
@@ -551,7 +557,6 @@ def subscriptions():
 
 
 @login_required
-@app.route('/subfeed')
 @app.route('/subfeed/<int:page>')
 def myfeed_sub(page=1):
     db_sess = db_session.create_session()
@@ -562,21 +567,9 @@ def myfeed_sub(page=1):
     posts = db_sess.query(Posts).filter(Posts.u_id.in_(uids)).order_by(Posts.post_date.desc()).limit(
         10).offset((page - 1) * 10).all()
     if not posts and page != 1:
-        return redirect('/subfeed')
+        return redirect('/subfeed/1')
     else:
-        return render_template('posts.html', page_title='My subscription feed', posts=posts, personal=False)
-
-
-# @login_required
-# @app.route('/friends')
-# def friends():
-#     pass
-#
-#
-# @login_required
-# @app.route('/friendfeed/<page>')
-# def myfeed_friend(page):
-#     pass
+        return render_template('posts.html', page_title='My subscription feed', posts=posts, personal=False, page=page)
 
 
 # ---- </sub>

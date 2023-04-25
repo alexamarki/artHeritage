@@ -3,39 +3,44 @@
 {% block content %}
 <div class="container-fluid">
     <br>
-    <h1>Register</h1>
-    <form action="" method="post" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.avatar(class="form-control") }}
-        </p>
-        <p>
-            {{ form.login.label }}<br>
-            {{ form.login(class="form-control", type="email", placeholder="Email") }}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(class="form-control", type="password", placeholder="Password") }}
-        </p>
-        <p>
-            {{ form.password_repeat.label }}<br>
-            {{ form.password_repeat(class="form-control", type="password", placeholder="Repeat password") }}
-        </p>
-        <p>
-            {{ form.name.label }}<br>
-            {{ form.name(class="form-control", placeholder="Name") }}
-        </p>
-        <p>
-            {{ form.username.label }}<br>
-            {{ form.username(class="form-control", placeholder="Username") }}
-        </p>
-        <p>
-            {{ form.about.label }}<br>
-            {{ form.about(class="form-control", placeholder="About me...") }}
-        </p>
-        <br>
-        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-        {{message}}
-    </form>
+    <div align="center">
+        <div class="w-25">
+            <h1 align="left">Register</h1>
+            <form action="" method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <p>
+                    <p align="left">{{ form.avatar.label }}</p>
+                    {{ form.avatar(class="form-control") }}
+                </p>
+                <p>
+                    <p align="left">{{ form.login.label }}</p>
+                    {{ form.login(class="form-control", type="email", placeholder="Email") }}
+                </p>
+                <p>
+                    <p align="left">{{ form.password.label }}</p>
+                    {{ form.password(class="form-control", type="password", placeholder="Password") }}
+                </p>
+                <p>
+                    <p align="left">{{ form.password_repeat.label }}</p>
+                    {{ form.password_repeat(class="form-control", type="password", placeholder="Repeat password") }}
+                </p>
+                <p>
+                    <p align="left">{{ form.name.label }}</p>
+                    {{ form.name(class="form-control", placeholder="Name") }}
+                </p>
+                <p>
+                    <p align="left">{{ form.username.label }}</p>
+                    {{ form.username(class="form-control", placeholder="Username") }}
+                </p>
+                <p>
+                    <p align="left">{{ form.about.label }}</p>
+                    {{ form.about(class="form-control", placeholder="About me...") }}
+                </p>
+                <br>
+                <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+                {{message}}
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

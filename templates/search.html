@@ -5,31 +5,34 @@
     <br>
     <h3 align="center">Search Results</h3>
     <br>
-    <form action="" method="post">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" name="plain_query" placeholder="Embark on an adventure"
-                   value="{{request.args.get('q')}}"
-                   aria-label="Embark on an adventure"
-                   aria-describedby="button-addon2">
-            <button class="btn btn-outline-dark" type="submit" id="button-addon2">Search</button>
-        </div>
-    </form>
-    <p>
+    <div align="center">
+        <form action="" method="post">
+            <div class="input-group mb-3 w-50">
+                <input type="text" class="form-control" name="plain_query" placeholder="Embark on an adventure"
+                       value="{{request.args.get('q')}}"
+                       aria-label="Embark on an adventure"
+                       aria-describedby="button-addon2">
+                <button class="btn btn-outline-dark" type="submit" id="button-addon2">Search</button>
+            </div>
+        </form>
+    </div>
+    <p align="center">
         <button class="btn btn-link shadow-none" type="button" style="text-decoration: none;" data-bs-toggle="collapse"
                 data-bs-target="#advancedSearch"
                 aria-expanded="false" aria-controls="advancedSearch">
             Advanced Search
         </button>
     </p>
-    <div class="collapse" id="advancedSearch">
-        <div class="card card-body">
+    <div class="collapse" id="advancedSearch" align="center">
+        <div class="card card-body w-25">
             <form action="" method="post">
                 {{ form.hidden_tag() }}
                 {% for field in ad_form %}
-                {{ field.label }}<br>
                 {% if field == ad_form.exist %}
+                {{ field.label }}<br>
                 {{ field() }}
-                {% else %}
+                {% elif field != ad_form.csrf_token %}
+                {{ field.label }}<br>
                 {{ field(class="form-control") }}
                 {% endif %}
                 <br>
@@ -37,49 +40,94 @@
             </form>
         </div>
     </div>
+</div>
 
-    <br>
-    {% set ending = 'full/full/0/default.jpg' %}
-    <div class="d-flex flex-wrap">
-        <div class="card-deck">
+<br>
+{% if file %}
+{% set ending = 'full/!500,500/0/default.jpg' %}
+<div class="d-flex flex-wrap">
+    <div class="container">
+        <div class="row grid" data-masonry='{"percentPosition": true }'>
             {% for card in file %}
+            {% set maker = card["_primaryMaker"]["name"] %}
+            {% if not maker %}
+            {% set maker = "Unknown Author" %}
+            {% endif %}
+            {% set title_c = card["_primaryTitle"] %}
+            {% if not title_c %}
+            {% set title_c = "Unknown Title" %}
+            {% endif %}
+            {% set date = card["_primaryDate"] %}
+            {% if not date %}
+            {% set date = "Unknown Date" %}
+            {% endif %}
+            {% set place = card["_primaryPlace"] %}
+            {% if not place %}
+            {% set place = "Unknown Location" %}
+            {% endif %}
             {% if "_iiif_image_base_url" in card["_images"] %}
             {% set link = card["_images"]["_iiif_image_base_url"] ~ ending %}
             {% else %}
             {% set link = '/static/img/missing.png' %}
             {% endif %}
-            <div class="card mb-3" style="max-width: 600px;">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <a href={{link}}>
-                            <img src={{link}} class="card-img"
-                                 alt="...">
-                        </a>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h5 class="card-title"><a class="text-decoration-none"
-                                                      href='/item/{{card["systemNumber"]}}'>{{card["_primaryTitle"]}}</a>
-                            </h5>
-                            <p class="card-text">{{card["_primaryMaker"]["name"]}}</p>
-                            <p class="card-text"><small class="text-muted">{{card["_primaryDate"]}},
-                                {{card["_primaryPlace"]}}</small></p>
-                            <p style="width:70px;">
-                                <a href='/newpost?iid={{card["systemNumber"]}}&query="{{query}}"'><img
-                                        src="/static/img/add_post.png" width="20"
-                                        height="20"/></a>
-                                <a href='/add_bookmark?iid={{card["systemNumber"]}}&query="{{query}}"'><img
-                                        src="/static/img/star.png" width="20"
-                                        height="20"/></a>
-                            </p>
-                        </div>
+            <div class="col-sm-6 col-lg-3 mb-3">
+                <div class="card mb-3" style="width: 18rem;">
+
+                    <a href={{link}}>
+                        <img src={{link}} class="card-img"
+                             alt="...">
+                    </a>
+
+                    <div class="card-body">
+                        <h5 class="card-title"><a class="text-decoration-none"
+                                                  href='/item/{{card["systemNumber"]}}'>{{title_c}}</a>
+                        </h5>
+
+                        <p class="card-text">By {{maker}}</p>
+                        <p class="card-text"><small class="text-muted">{{date}}, in {{place}}</small></p>
+                        <p style="width:70px;">
+                            <a href='/newpost?iid={{card["systemNumber"]}}&query="{{query}}"'><img
+                                    src="/static/img/add_post.png" width="20"
+                                    height="20"/></a>
+                            <a href='/add_bookmark?iid={{card["systemNumber"]}}&query="{{query}}"'><img
+                                    src="/static/img/star.png" width="20"
+                                    height="20"/></a>
+                        </p>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+
     </div>
 </div>
+{% elif page != 1 and not file %}
+<a href="/search?{{query}}" style="text-decoration: none;">
+    <h4 align="center">No such page exists for this query. Click here to go back to page 1.</h4>
+</a>
+{% else %}
+<h4 align="center">No results</h4>
+{% endif %}
+{% if file %}
+<div align="center">
+    <nav aria-label="Paginate">
+        <ul class="pagination justify-content-center">
+            {% if page == 1 %}
+            <li class="page-item disabled">
+                <a class="page-link" tabindex="-1">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="/search/{{page - 1}}?{{query}}">Previous</a>
+            </li>
+            {% endif %}
+            <li class="page-item">
+                <a class="page-link" href="/search/{{page + 1}}?{{query}}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endif %}
 
 
 {% endblock %}

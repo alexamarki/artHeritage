@@ -1,0 +1,23 @@
+{% extends "base_with_profile_opt.html" %}
+
+{% block paginator %}
+<div align="center">
+    <nav aria-label="Paginate">
+        <ul class="pagination justify-content-center">
+            {% if page == 1 %}
+            <li class="page-item disabled">
+                <a class="page-link" tabindex="-1">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="{{page - 1}}">Previous</a>
+            </li>
+            {% endif %}
+            <li class="page-item">
+                <a class="page-link" href="{{page + 1}}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+

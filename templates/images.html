@@ -1,0 +1,36 @@
+{% extends "base_with_profile_opt.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <br>
+    <h3 align="center">{{page_title}}</h3>
+    <br>
+    <div class="d-flex flex-wrap justify-content-center">
+        <div class="card-deck">
+            {% for artwork in artworks %}
+            <div class="card mb-3" style="max-width: 600px;">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <a href=/item/{{artwork.content_img}}>
+                            <img src={{artwork.content_img}} class="card-img"
+                                 alt="...">
+                        </a>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title"><a class="text-decoration-none"
+                                                      href='/item/{{artwork.content_src}}'>{{artwork.content_title}}</a>
+                            </h5>
+                            <p class="card-text">By {{artwork.content_creator}}</p>
+                            <p class="card-text"><small class="text-muted">{{artwork.content_date}}</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

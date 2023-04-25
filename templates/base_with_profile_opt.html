@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
 {% block navctr %}
+<a href="/top" class="btn btn-outline-dark" type="submit">Top 5 artworks</a>
+<a href="/feed/1" class="btn btn-outline-dark" type="submit">All posts</a>
 {% if current_user.is_authenticated %}
+&nbsp;&nbsp;&nbsp;
 <a href="/subfeed/1" class="btn btn-outline-dark" type="submit">My feed</a>
-<a href="/bookmarks/1" class="btn btn-outline-dark" type="submit">My bookmarks</a>
-<a href="/posts/1" class="btn btn-outline-dark" type="submit">My posts</a>
+<a href="/newpost" class="btn btn-outline-dark" type="submit">New post</a>
 {% endif %}
 {% endblock %}
 {% block navbut %}
@@ -18,8 +20,23 @@
     <a href="/me" class="text-decoration-none link-dark">
         <h4>{{current_user.name}}</h4>
     </a>
-    <a href="/logout" class="btn btn-outline-dark" type="submit">Log out</a>
+    <div class="btn-group">
+        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+            More...
+        </button>
+        <ul class="dropdown-menu dropdown-menu-lg-end">
+            <li><a class="dropdown-item" href="/posts/1">My posts</a></li>
+            <li><a class="dropdown-item" href="/bookmarks/1">My bookmarks</a></li>
+            <li><a class="dropdown-item" href="/me">My profile</a></li>
+            <li><a class="dropdown-item" href="/me/options">Edit profile</a></li>
+            <li><a class="dropdown-item" href="/subscribers">My subscribers</a></li>
+            <li><a class="dropdown-item" href="/subscribers">My subscriptions</a></li>
+            <li><a class="dropdown-item" href="/logout">Log out</a></li>
+        </ul>
+    </div>
 </div>
+
 {% else %}
 <a href="/logreg" class="btn btn-outline-dark" type="submit">Log in/Register</a>
 {% endif %}

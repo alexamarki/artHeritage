@@ -1,9 +1,7 @@
-.card-limited {
-width: 1000px;
+card-limited {
+    width: 1000px;
 }
-.card-img-bottom {
-width: 100%;
+card-img-bottom {
+    width: 100%;
 }
-body {
-  background-color: #faf1f2;
-}
+

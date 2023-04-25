@@ -3,13 +3,22 @@
 {% block content %}
 <div class="container-fluid">
     <br>
-    <h1>Edit profile info</h1>
-    <form action="" method="post" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        {% for field in form %}
-        {{ field(class="form-control") }}
-        <br>
-        {% endfor %}
-    </form>
+    <div align="center">
+        <div class="w-25">
+            <h1>Edit profile info</h1>
+            <form action="" method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                {% for field in form %}
+                {% if field != form.csrf_token %}
+                <div align="left">
+                    {{ field.label }}
+                </div>
+                {{ field(class="form-control") }}
+                {% endif %}
+                <br>
+                {% endfor %}
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

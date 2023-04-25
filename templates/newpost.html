@@ -3,19 +3,24 @@
 {% block content %}
 <div class="container-fluid">
     <br>
-    <h1>Create an amazing post</h1>
-    <form action="" method="post">
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.title.label }}<br>
-            {{ form.title(class="form-control", type="text", placeholder="Title") }}
-        </p>
-        <p>
-            {{ form.content.label }}<br>
-            {{ form.content(class="form-control", type="text", placeholder="A wonderful creation of pure imagination.") }}
-        </p>
-        <p>{{ form.public() }} {{ form.public.label }}</p>
-        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
-    </form>
+    <h1 align="center">Create an amazing post</h1>
+    <div align="center">
+        <div class="w-75">
+            <form action="" method="post">
+                {{ form.hidden_tag() }}
+                <p>
+                    {{ form.title.label }}<br>
+                    {{ form.title(class="form-control", type="text", placeholder="Title") }}
+                </p>
+                <p>
+                    {{ form.content.label }}<br>
+                    {{ form.content(class="form-control", type="text", placeholder="A wonderful creation of pure
+                    imagination.") }}
+                </p>
+                <p>{{ form.public() }} {{ form.public.label }}</p>
+                <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
