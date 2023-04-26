@@ -16,6 +16,6 @@ class Content(SqlAlchemyBase):
     content_date = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     interactions = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     latest_interaction = sqlalchemy.Column(sqlalchemy.DateTime,
-                                     default=datetime.datetime.now)
+                                           default=datetime.datetime.now)
     bookmarks = orm.relationship("Bookmarks", back_populates="content")
     posts = orm.relationship("Posts", back_populates="content")

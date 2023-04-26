@@ -10,13 +10,13 @@ class Posts(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     content_id = sqlalchemy.Column(sqlalchemy.Integer,
-                             sqlalchemy.ForeignKey("content.id"), nullable=True, default=None)
+                                   sqlalchemy.ForeignKey("content.id"), nullable=True, default=None)
     is_public = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
     u_title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     u_content = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     u_id = sqlalchemy.Column(sqlalchemy.Integer,
                              sqlalchemy.ForeignKey("users.id"))
     post_date = sqlalchemy.Column(sqlalchemy.DateTime,
-                                     default=datetime.datetime.now)
+                                  default=datetime.datetime.now)
     users = orm.relationship('Users')
     content = orm.relationship('Content')

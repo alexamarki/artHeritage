@@ -9,8 +9,8 @@ def configurated_request(query, page):
     return dew_it(query.split('&'), page)[0]
 
 
-def info_get(id):
-    return dew_it([f'kw_system_number={id}'])
+def info_get(obj_id):
+    return dew_it([f'kw_system_number={obj_id}'])
 
 
 def dew_it(parameters, page=1):

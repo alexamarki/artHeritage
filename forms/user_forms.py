@@ -15,11 +15,13 @@ class RegisterForm(FlaskForm):
                        validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'You can only use jpg ot png files as avatars')])
     submit = SubmitField('Register')
 
+
 class LoginForm(FlaskForm):
     login = EmailField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember me')
     submit = SubmitField('Login')
+
 
 class EditForm(FlaskForm):
     name = StringField('Display name', validators=[DataRequired()])

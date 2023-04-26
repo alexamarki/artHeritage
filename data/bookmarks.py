@@ -12,8 +12,8 @@ class Bookmarks(SqlAlchemyBase):
     content_id = sqlalchemy.Column(sqlalchemy.Integer,
                                    sqlalchemy.ForeignKey("content.id"))
     u_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("users.id"))
+                             sqlalchemy.ForeignKey("users.id"))
     book_date = sqlalchemy.Column(sqlalchemy.DateTime,
-                                     default=datetime.datetime.now)
+                                  default=datetime.datetime.now)
     users = orm.relationship('Users')
     content = orm.relationship('Content')

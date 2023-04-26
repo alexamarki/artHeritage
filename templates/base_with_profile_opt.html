@@ -9,6 +9,7 @@
 <a href="/newpost" class="btn btn-outline-dark" type="submit">New post</a>
 {% endif %}
 {% endblock %}
+
 {% block navbut %}
 {% if current_user.is_authenticated %}
 <div class="d-flex align-middle justify-content-center gap-3">
@@ -31,12 +32,11 @@
             <li><a class="dropdown-item" href="/me">My profile</a></li>
             <li><a class="dropdown-item" href="/me/options">Edit profile</a></li>
             <li><a class="dropdown-item" href="/subscribers">My subscribers</a></li>
-            <li><a class="dropdown-item" href="/subscribers">My subscriptions</a></li>
+            <li><a class="dropdown-item" href="/subscriptions">My subscriptions</a></li>
             <li><a class="dropdown-item" href="/logout">Log out</a></li>
         </ul>
     </div>
 </div>
-
 {% else %}
 <a href="/logreg" class="btn btn-outline-dark" type="submit">Log in/Register</a>
 {% endif %}

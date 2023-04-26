@@ -102,10 +102,10 @@
                         <p class="card-text"><small class="text-muted">{{date}}, in {{place}}</small></p>
                         {% if current_user.is_authenticated %}
                         <p style="width:70px;">
-                            <a href='/newpost?iid={{card["systemNumber"]}}&query="{{query}}"'><img
+                            <a href='/newpost?iid={{card["systemNumber"]}}&page={{page}}&query="{{query}}"'><img
                                     src="/static/img/add_post.png" width="20"
                                     height="20"/></a>
-                            <a href='/add_bookmark?iid={{card["systemNumber"]}}&query="{{query}}"'><img
+                            <a href='/add_bookmark?iid={{card["systemNumber"]}}&page={{page}}&query="{{query}}"'><img
                                     src="/static/img/star.png" width="20"
                                     height="20"/></a>
                         </p>
