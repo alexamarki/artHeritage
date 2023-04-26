@@ -13,6 +13,7 @@ from forms.user_forms import RegisterForm, LoginForm, EditForm
 from forms.post_forms import PostForm
 from forms.search_forms import AdvancedForm, SearchForm
 from flask import request
+from werkzeug import exceptions
 import datetime
 
 # ! ! ! ! ! ! ! ! ! ! ! ! ! Comment clarification ! ! ! ! ! ! ! ! ! ! ! ! ! #
@@ -54,14 +55,37 @@ import datetime
 #   and baz() holds the property of tag 2                                    # 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-############### ADD PROTECTION AGAINST SQL INJECTIONS PLSSSSSSSS
-
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['SECRET_KEY'] = 'KJKjxkwh7w6%575&jBHJI(987'
 app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024
 db_session.global_init("db/user_info.db")
 
+
 # <handler> Login, error handling via Flask
+@app.errorhandler(exceptions.BadRequest)
+def handle_401(_):
+    return render_template('error.html', error=401)
+
+
+@app.errorhandler(exceptions.BadRequest)
+def handle_403(_):
+    return render_template('error.html', error=403)
+
+
+@app.errorhandler(exceptions.BadRequest)
+def handle_404(_):
+    return render_template('error.html', error=404)
+
+
+@app.errorhandler(exceptions.BadRequest)
+def handle_500(_):
+    return render_template('error.html', error=500)
+
+
+app.register_error_handler(401, handle_401)
+app.register_error_handler(403, handle_403)
+app.register_error_handler(404, handle_404)
+app.register_error_handler(500, handle_500)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -89,18 +113,7 @@ def home():
 
 @app.route('/info')
 def info():
-    pass
-    # add check for auth to fetch name + avatar
-    # return the template with info + vars
-
-
-@app.route('/options')
-def options():
-    pass
-    # add form
-    # fetch cookie with configs (if none, create a blank one with the default values)
-    # check for login - if logged in, use the user's personal config /only if it's differtent from others'/ instead of the browser's cached data
-    # return a page with the current options selected
+    return render_template('info.html')
 
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -118,14 +131,12 @@ def search(page=1):
         add = []
         row_c = 0
         for row in ad_form:
-            print(row.id)
             if row.data and row.id not in ('submit', 'csrf_token'):
                 if row.id == 'exist':
                     add.append('images_exist=1')
                 else:
-                    add.append(params_VnA[row_c] + row.data)
+                    add.append(params_VnA[row_c] + str(row.data))
             row_c += 1
-            print(row, row_c)
         if add:
             return redirect(f'/search?q={request.args.get("q")}&{"&".join(add)}')
     if len(query.split('&')) <= 1:
@@ -421,7 +432,7 @@ def create_post():
     post_form = PostForm()
     db_sess = db_session.create_session()
     item_id = request.args.get('iid')
-    query=''
+    query = ''
     if request.args.get('query'):
         query = request.args.get('query').strip('"')
     if post_form.validate_on_submit():
@@ -491,14 +502,14 @@ def delete_agent(table, id):
 @app.route('/deletepost/<int:post_id>', methods=['GET', 'POST'])
 def delete_post(post_id):
     delete_agent(Posts, post_id)
-    return redirect('/posts')
+    return redirect('/posts/1')
 
 
 @login_required
 @app.route('/remove_bookmark/<int:book_id>', methods=['GET', 'POST'])
 def remove_book(book_id):
     delete_agent(Bookmarks, book_id)
-    return redirect('/bookmarks')
+    return redirect('/bookmarks/1')
 
 
 # ----</actions>
@@ -538,7 +549,7 @@ def subscribers():
         for user in user_follow:
             more_info = db_sess.query(Users).filter(Users.id == user.u_follower_id).first()
             subs.append((more_info.username, more_info.name, more_info.avatar))
-    return render_template('userlist.html', nosubs=nosubs, users_l=subs)
+    return render_template('userlist.html', nosubs=nosubs, users_l=subs, ppl_assoc='My subscribers')
 
 
 @login_required
@@ -552,8 +563,8 @@ def subscriptions():
         nosubs = True
     else:
         for user in user_follow:
-            subs.append((user.users.username, user.users.name))
-    return render_template('userlist.html', nosubs=nosubs, users_l=subs)
+            subs.append((user.users.username, user.users.name, user.users.avatar))
+    return render_template('userlist.html', nosubs=nosubs, users_l=subs, ppl_assoc='My subscriptions')
 
 
 @login_required

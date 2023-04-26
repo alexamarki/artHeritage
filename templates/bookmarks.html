@@ -5,6 +5,7 @@
     <br>
     <h3 align="center">{{page_title}}</h3>
     <br>
+    {% if bkmrks %}
     <div class="d-flex flex-wrap">
         <div class="container">
             <div class="row grid" data-masonry='{"percentPosition": true }'>
@@ -37,7 +38,11 @@
             </div>
         </div>
     </div>
-
+    {% else %}
+    <h5 align="center">No bookmarks</h5>
+    {% set ns.next_dis = true %}
+    <br>
+    {% endif %}
 </div>
 {% endblock %}
 

@@ -83,6 +83,7 @@
                 </div>
             </div>
         </div>
+        {% if current_user.is_authenticated %}
         <br>
         {% if my_page %}
         <a href="/me/options" class="btn btn-outline-dark" type="submit">Edit profile</a>
@@ -90,6 +91,7 @@
         <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Unsubscribe</a>
         {% else %}
         <a href="/subscribe/{{username}}" class="btn btn-outline-dark" type="submit">Subscribe</a>
+        {% endif %}
         {% endif %}
     </div>
 </div>

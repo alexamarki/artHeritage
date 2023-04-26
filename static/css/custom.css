@@ -4,4 +4,21 @@ card-limited {
 card-img-bottom {
     width: 100%;
 }
-
+* {
+    margin: 0;
+}
+html, body {
+    height: 100%;
+}
+.wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -142px;
+}
+footer, .push {
+    height: 142px;
+}
+footer {
+  background-color: rgba(0,0,0,0.15);
+}

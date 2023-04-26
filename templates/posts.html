@@ -5,6 +5,7 @@
     <br>
     <h3 align="center">{{page_title}}</h3>
     <br>
+    {% if posts %}
     <div class="d-flex flex-wrap justify-content-center">
         <div class="card-deck">
             {% for post in posts %}
@@ -21,8 +22,11 @@
                     <p class="card-text"><small class="text-muted">{{post.post_date.strftime('%a %d %b %Y,
                         %I:%M%p')}}</small></p>
                     {% else %}
-                    <p class="card-text"><small class="text-muted">By {{post.users.name}}
-                        (@{{post.users.username}}); On {{post.post_date.strftime('%a %d %b %Y, %I:%M%p')}}</small></p>
+                    <a href="/user/{{post.users.username}}" style="text-decoration: none;">
+                        <p class="card-text"><small class="text-muted">By {{post.users.name}}
+                            (@{{post.users.username}}); On {{post.post_date.strftime('%a %d %b %Y, %I:%M%p')}}</small>
+                        </p>
+                    </a>
                     {% endif %}
                 </div>
                 {% if post.content %}
@@ -44,8 +48,11 @@
             {% endfor %}
         </div>
     </div>
+    {% else %}
+    <h5 align="center">No posts</h5>
+    {% set ns.next_dis = true %}
+    <br>
+    {% endif %}
 </div>
-
-
 {% endblock %}
 

@@ -5,10 +5,11 @@
     <br>
     <h3 align="center">{{ppl_assoc}}</h3>
     <br>
-    <div class="d-flex flex-wrap justify-content-center w-50">
+    {% if not nosubs %}
+    <div class="d-flex flex-wrap justify-content-center">
         <div class="card-deck">
             {% for user in users_l %}
-            <div class="card card-limited">
+            <div class="card card-limited" style="width: 18rem;">
                 <div class="card-body">
                     <a href="/user/{{user[0]}}">
                         <img src="/static/img/avatar/{{user[2]}}.png" class="img-fluid rounded-circle"
@@ -25,6 +26,9 @@
         <br>
         {% endfor %}
     </div>
+    {% else %}
+    <h5 align="center">None</h5>
+    {% endif %}
 </div>
 </div>
 

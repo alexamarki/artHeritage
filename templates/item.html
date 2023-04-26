@@ -2,29 +2,83 @@
 
 {% block content %}
 <div class="container-fluid">
-    {% set ending = 'full/full/0/default.jpg' %}
-    {% if "_iiif_image_base_url" in file["_images"] %}
-    {% set link = file["_images"]["_iiif_image_base_url"] ~ ending %}
-    {% else %}
-    {% set link = '/static/img/missing.png' %}
-    {% endif %}
-
-    <a href={{link}}>
-        <img src={{link}} class="card-img"
-             alt="...">
-    </a>
-
-    <h5>{{file["_primaryTitle"]}}
-    </h5>
-    <p>{{file["_primaryMaker"]["name"]}}</p>
-    <p><small class="text-muted">{{file["_primaryDate"]}},
-        {{file["_primaryPlace"]}}</small></p>
-    <p style="width:70px;">
-        <a href='/newpost/{{file["systemNumber"]}}'><img src="/static/img/add_post.png" width="20"
-                                                         height="20"/></a>
-        <a href='/add_bookmark/{{file["systemNumber"]}}'><img src="/static/img/star.png" width="20"
-                                                              height="20"/></a>
-    </p>
-
+    <br>
+    <div class="d-flex align-items-center justify-content-around">
+        {% set ending = 'full/!1200,1200/0/default.jpg' %}
+        {% set endingFull = 'full/full/0/default.jpg' %}
+        {% set maker = file["_primaryMaker"]["name"] %}
+        {% if not maker %}
+        {% set maker = "Unknown Author" %}
+        {% endif %}
+        {% set association = file["_primaryMaker"]["association"] %}
+        {% if not association %}
+        {% set association = "-" %}
+        {% endif %}
+        {% set title = file["_primaryTitle"] %}
+        {% if not title %}
+        {% set title = "Unknown Title" %}
+        {% endif %}
+        {% set type = file["objectType"] %}
+        {% if not type %}
+        {% set type = "Unknown Object" %}
+        {% endif %}
+        {% set material = file["materialsAndTechniques"] %}
+        {% if not material %}
+        {% set material = "Unknown Materials and Techniques" %}
+        {% endif %}
+        {% set date = file["_primaryDate"] %}
+        {% if not date %}
+        {% set date = "Unknown Date" %}
+        {% endif %}
+        {% set place = file["_primaryPlace"] %}
+        {% if not place %}
+        {% set place = "Unknown Location" %}
+        {% endif %}
+        {% set current_place = file["_currentLocation__displayName"] %}
+        {% if not current_place %}
+        {% set current_place = "Unknown Room" %}
+        {% endif %}
+        {% set acquired = file["accessionYear"] %}
+        {% if not acquired %}
+        {% set acquired = "Unknown Year" %}
+        {% endif %}
+        {% set num = file["systemNumber"] %}
+        {% if "_iiif_image_base_url" in file["_images"] %}
+        {% set link = file["_images"]["_iiif_image_base_url"] ~ ending %}
+        {% set linkFull = file["_images"]["_iiif_image_base_url"] ~ endingFull %}
+        {% else %}
+        {% set link = '' %}
+        {% endif %}
+        <br>
+        <div>
+            {% if link %}
+            <a href={{linkFull}}>
+                <img src={{link}} class="card-img"
+                     alt="...">
+            </a>
+            {% else %}
+            <img src='/static/img/missing.png' class="card-img"
+                     alt="...">
+            {% endif %}
+        </div>
+        <br>
+        <div>
+            <a href="https://collections.vam.ac.uk/item/{{num}}" style="text-decoration: none;"><h5>{{title}}</h5></a>
+            <p>By {{maker}}, {{association}}</p>
+            <p><small class="text-muted">{{type}}, using {{material}}</small></p>
+            <p><small class="text-muted">{{date}}, in {{place}}</small></p>
+            <br>
+            <p><small class="text-muted">Acquired in {{acquired}}, currently housed in {{current_place}}</small></p>
+            {% if current_user.is_authenticated %}
+            <p style="width:70px;">
+                <a href='/newpost?iid={{num}}'><img src="/static/img/add_post.png" width="20"
+                                                height="20"/></a>
+                <a href='/add_bookmark?iid={{num}}'><img src="/static/img/star.png" width="20"
+                                                     height="20"/></a>
+            </p>
+            {% endif %}
+        </div>
+        <br>
+    </div>
 </div>
 {% endblock %}

@@ -28,21 +28,36 @@
             <form action="" method="post">
                 {{ form.hidden_tag() }}
                 {% for field in ad_form %}
-                {% if field == ad_form.exist %}
-                {{ field.label }}<br>
-                {{ field() }}
-                {% elif field != ad_form.csrf_token %}
-                {{ field.label }}<br>
-                {{ field(class="form-control") }}
-                {% endif %}
+                {% if field == ad_form.submit %}
+                {{ field(class="btn btn-outline-dark") }}
+                {% elif field == ad_form.exist %}
+                <div align="left">
+                    {{ field.label }}
+                </div>
+                <div class="form-check">
+                    {{ field(class="form-check-input") }}
+                </div>
                 <br>
+                {% elif field in (ad_form.on_display_at, ad_form.order_by, ad_form.order_sort) %}
+                <div align="left">
+                    {{ field.label }}
+                </div>
+                {{ field(class="form-select") }}
+                <br>
+                {% elif field != ad_form.csrf_token %}
+                <div align="left">
+                    {{ field.label }}
+                </div>
+                {{ field(class="form-control") }}
+                <br>
+                {% endif %}
                 {% endfor %}
             </form>
         </div>
+        <br>
     </div>
 </div>
 
-<br>
 {% if file %}
 {% set ending = 'full/!500,500/0/default.jpg' %}
 <div class="d-flex flex-wrap">
@@ -85,6 +100,7 @@
 
                         <p class="card-text">By {{maker}}</p>
                         <p class="card-text"><small class="text-muted">{{date}}, in {{place}}</small></p>
+                        {% if current_user.is_authenticated %}
                         <p style="width:70px;">
                             <a href='/newpost?iid={{card["systemNumber"]}}&query="{{query}}"'><img
                                     src="/static/img/add_post.png" width="20"
@@ -93,6 +109,7 @@
                                     src="/static/img/star.png" width="20"
                                     height="20"/></a>
                         </p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
